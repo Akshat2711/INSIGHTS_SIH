@@ -1,0 +1,70 @@
+{
+  "cgpa": [
+    {"range": "> 9.5", "points": 5, "why": "CGPA > 9.5 = 5 Marks"},
+    {"range": "9.1 to 9.5", "points": 4, "why": "CGPA between 9.1 and 9.5 = 4 Marks"},
+    {"range": "8.6 to 9.0", "points": 3, "why": "CGPA between 8.6 and 9.0 = 3 Marks"},
+    {"range": "7.5 to 8.5", "points": 2, "why": "CGPA between 7.5 and 8.5 = 2 Marks"},
+    {"range": "< 7.5", "points": 1, "why": "CGPA less than 7.5 = 1 Mark"}
+  ],
+
+  "hackathon": [
+    {"position": 1, "points": 5, "why": "First Prize in Hackathon or Coding Competition = 5 Marks"},
+    {"position": 2, "points": 4, "why": "Second Prize in Hackathon or Coding Competition = 4 Marks"},
+    {"position": 3, "points": 3, "why": "Third Prize in Hackathon or Coding Competition = 3 Marks"},
+    {"position": "participated", "points": 1, "why": "Participation in Hackathon = 1 Mark"}
+  ],
+
+  "internship": [
+    {"type": "IIT/NIT/SRM placement", "points": 5, "why": "Internship from IIT/NIT or placed through SRM process = 5 Marks"},
+    {"type": "Fortune 500", "points": 4, "why": "Internship at a Fortune 500 company = 4 Marks"},
+    {"type": "Small company (>=3 months)", "points": 3, "why": "Internship at small company, 3+ months = 3 Marks"},
+    {"type": "Small company (<3 months)", "points": 2, "why": "Internship at small company, <3 months = 2 Marks"},
+    {"type": "Duration not mentioned", "points": 1, "why": "Internship duration not mentioned = 1 Mark"},
+    {"type": "Paid (additive)", "points": 1, "why": "Paid Internship = +1 Mark"}
+  ],
+  
+
+  "project": [
+    {"type": "IIT/NIT/DRDO", "points": 5, "why": "Project under IIT/NIT/DRDO = 5 Marks"},
+    {"type": "Government-funded", "points": 4, "why": "Government organization project = 4 Marks"},
+    {"type": "Full-Stack / Web / Mobile App", "points": 3, "why": "Full-stack, Web or Mobile App project = 3 Marks"},
+    {"type": "In-house (under SRM faculty)", "points": 3, "why": "In-house project under SRM faculty = 3 Marks"},
+    {"type": "Mini Project", "points": "1-2", "why": "Mini project based on quality = 1 to 2 Marks"}
+  ],
+ 
+
+  "certification": [
+    {"type": "Industrial vendor (Cisco/Redhat/IBM etc)", "points": 5, "why": "Industrial vendor certifications = 5 Marks"},
+    {"type": "NPTEL", "points": 3, "why": "NPTEL course = 3 Marks"},
+    {"type": "Coursera/edX", "points": 2, "why": "Coursera or edX course = 2 Marks"},
+    {"type": "Programming language (C, C++, Python etc.)", "points": 1, "why": "Programming certification = 1 Mark"},
+    {"type": "Udemy/short MOOCs", "points": 0.5, "why": "Short online courses = 0.5 Marks"}
+  ],
+
+
+  "coding_platform": [
+    {"metric": "Badges ≥ 25", "points": 5, "why": "25 or more badges = 5 Marks"},
+    {"metric": "Solved > 200 medium/hard", "points": 5, "why": "Solved 200+ medium/hard coding problems = 5 Marks"}
+  ],
+
+  "membership": [
+    {"body": "IEEE/IET/ACM etc", "points": 2, "why": "Membership in professional body (with valid certificate) = 2 Marks"}
+  ],
+
+  "assessment": [
+    {"event": "SHL/NCET", "score_range": "90–100", "points": 10, "why": "Top score bracket = 10 Marks"},
+    {"event": "SHL/NCET", "score_range": "80–89", "points": 8, "why": "Second score bracket = 8 Marks"},
+    {"event": "SHL/NCET", "score_range": "70–79", "points": 6, "why": "Third score bracket = 6 Marks"},
+    {"event": "SHL/NCET", "score_range": "< 70", "points": 0, "why": "Score below 70 = 0 Marks"}
+  ],
+
+  "leadership": [
+    {"type": "Club President/Team Lead", "points": 4, "why": "Leadership role in student organization = 4 Marks"},
+    {"type": "Project Lead", "points": 3, "why": "Leading a successful project/team = 3 Marks"}
+  ],
+
+  "research_publications": [
+    {"type": "International journal", "points": 5, "why": "Published in recognized international journal = 5 Marks"},
+    {"type": "National conference", "points": 3, "why": "Presented at national level conference = 3 Marks"}
+  ]
+}

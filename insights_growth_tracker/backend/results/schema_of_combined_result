@@ -1,0 +1,18 @@
+{
+  "userid": {
+    "posts": {
+      "post_type": [
+        {
+          "field1": "value",
+          "field2": "value"
+        }
+      ]
+    },
+    "original_scrapping": [
+      {
+        "field1": "value",
+        "field2": "value"
+      }
+    ]
+  }
+}

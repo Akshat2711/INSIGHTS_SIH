@@ -1,0 +1,4 @@
+.env
+temp
+backend_firestore_cred.json
+insights_venv
