@@ -1,10 +1,14 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Dict, Any, List, Optional
 import json
 import asyncio
 import threading
 import concurrent.futures
 import os
+import uvicorn
 
 from utils.post_to_numbers import run_scoring_pipeline_firestore
 from utils.Firestore_db import FirestoreUserManager
@@ -12,7 +16,6 @@ from utils.Firestore_db import FirestoreUserManager
 import logging
 import firebase_admin
 from firebase_admin import credentials, firestore
-from typing import Dict, Any, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,8 +26,11 @@ try:
     # Initialize Firebase app if not already initialized
     if not firebase_admin._apps:
         # Use service account key file
-        rel_path_for_cred = os.path.join(os.path.dirname(__file__), "..")
-        cred = credentials.Certificate(os.path.join(rel_path_for_cred, "backend_firestore_cred.json"))
+        base_dir = os.path.dirname(__file__)
+        # Go one directory up, then use the file
+        cred_path = os.path.join(base_dir, "..", "backend_firestore_cred.json")
+
+        cred = credentials.Certificate(os.path.abspath(cred_path))
 
         # Or use default credentials if running on Google Cloud
         # cred = credentials.ApplicationDefault()
@@ -36,8 +42,16 @@ except Exception as e:
     logger.error(f"Failed to initialize Firebase: {e}")
     db = None
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+app = FastAPI()
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize Firestore manager
 firestore_manager = FirestoreUserManager(db) if db else None
@@ -92,67 +106,66 @@ async def get_or_create_scraper():
     scraper = LinkedInScraper(headless=False)
     return scraper
 
+# Pydantic models for request bodies
+class UpdatePointsRequest(BaseModel):
+    username: str
+    roles: Dict[str, Any] = {}
+
 # Routes
-@app.route('/senduserinfo', methods=['GET', 'POST'])
-def send_user_info():
+@app.get('/senduserinfo')
+@app.post('/senduserinfo')
+async def send_user_info(userid: str = Query(..., description="User ID parameter")):
     """Get single user info from Firestore."""
     if not firestore_manager:
-        return jsonify({"error": "Firestore not initialized"}), 500
-    
-    user_id = request.args.get('userid')
-    if not user_id:
-        return jsonify({"error": "userid parameter is required"}), 400
+        raise HTTPException(status_code=500, detail="Firestore not initialized")
     
     try:
-        user_data = firestore_manager.get_user_data(user_id)
+        user_data = firestore_manager.get_user_data(userid)
         if user_data:
-            return jsonify({"user_data": user_data})
+            return {"user_data": user_data}
         else:
-            return jsonify({"error": "User not found"}), 404
+            raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/getallusers', methods=['GET'])
-def get_all_users():
+@app.get('/getallusers')
+async def get_all_users():
     """Get all users sorted by total points from Firestore."""
     if not firestore_manager:
-        return jsonify({"error": "Firestore not initialized"}), 500
+        raise HTTPException(status_code=500, detail="Firestore not initialized")
     
     try:
         all_users = firestore_manager.get_all_users_sorted()
-        return jsonify({"all_users": all_users})
+        return {"all_users": all_users}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/scrapdata', methods=['GET', "POST"])
-def get_data_scrapper():
+@app.get('/scrapdata')
+@app.post('/scrapdata')
+async def get_data_scrapper(userid: str = Query(..., description="User ID parameter")):
     """Scrape data and convert to numbers, then store in Firestore."""
     if not firestore_manager:
-        return jsonify({"error": "Firestore not initialized"}), 500
+        raise HTTPException(status_code=500, detail="Firestore not initialized")
 
     async def scrape_async():
         try:
-            user_id = request.args.get('userid')
-            if not user_id:
-                return {"success": False, "error": "userid parameter is required"}
-
-            logger.info(f"Started scrapping data for user: {user_id}")
+            logger.info(f"Started scrapping data for user: {userid}")
 
             # Get or create persistent scraper
             current_scraper = await get_or_create_scraper()
             
             # Step 1: Scrape data using persistent scraper
-            posts = await current_scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{user_id}")
+            posts = await current_scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
             
             # Step 2: Save to Firestore
             if firestore_manager:
-                success = firestore_manager.update_original_scraping(user_id, posts)
+                success = firestore_manager.update_original_scraping(userid, posts)
                 if not success:
                     return {"success": False, "error": "Failed to save scraping data"}
 
             # Step 3: Convert scrapped data to numbers and update Firestore
             await run_scoring_pipeline_firestore(
-                user_id,
+                userid,
                 os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
                 firestore_manager
             )
@@ -166,16 +179,16 @@ def get_data_scrapper():
     # Run async function in shared background loop and return result
     try:
         result = run_async(scrape_async(), timeout=180)
-        return jsonify(result)
+        return result
     except Exception as e:
         logger.error(f"Scraping invocation failed: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/getleaderboard', methods=['GET'])
-def get_leaderboard():
+@app.get('/getleaderboard')
+async def get_leaderboard():
     """Get users ranked by total points - useful for leaderboard displays."""
     if not firestore_manager:
-        return jsonify({"error": "Firestore not initialized"}), 500
+        raise HTTPException(status_code=500, detail="Firestore not initialized")
     
     try:
         all_users = firestore_manager.get_all_users_sorted()
@@ -192,44 +205,35 @@ def get_leaderboard():
             })
             rank += 1
         
-        return jsonify({"leaderboard": leaderboard})
+        return {"leaderboard": leaderboard}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-
-
-
-
-
-#route to update no. after role added/updated by user
-@app.route('/update_points', methods=['POST'])
-def update_marks_for_role():
+# Route to update no. after role added/updated by user
+@app.post('/update_points')
+async def update_marks_for_role(request_data: UpdatePointsRequest):
     try:
         print("=== UPDATE POINTS REQUEST ===")
         
         # Get username and role data from request
-        data = request.get_json()
-        print(f"Received data: {data}")
-        
-        username = data.get('username')
-        role_data = data.get('roles', {})
+        username = request_data.username
+        role_data = request_data.roles
         
         print(f"Username: {username}")
         print(f"Role data keys count: {len(role_data) if role_data else 0}")
         
         if not username:
-            return jsonify({"error": "Username is required"}), 400
+            raise HTTPException(status_code=400, detail="Username is required")
             
         if not firestore_manager:
-            return jsonify({"error": "Firestore manager not initialized"}), 500
+            raise HTTPException(status_code=500, detail="Firestore manager not initialized")
             
         print("Updating roles in Firestore...")
         # Update role data in Firestore
         success = firestore_manager.update_user_roles(username, role_data)
         if not success:
             print("Failed to update roles")
-            return jsonify({"error": "Failed to update roles"}), 500
+            raise HTTPException(status_code=500, detail="Failed to update roles")
         
         print("Roles updated successfully, running scoring pipeline...")
         # Re-run scoring with updated roles
@@ -240,49 +244,31 @@ def update_marks_for_role():
         ))
         
         print("Scoring completed successfully")
-        return jsonify({
+        return {
             "message": "Points updated successfully",
             "scored_data": scored_data
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"ERROR in update_marks_for_role: {str(e)}")
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#others
-@app.route('/health', methods=['GET'])
-def health_check():
+# Others
+@app.get('/health')
+async def health_check():
     """Health check endpoint."""
     firestore_status = "connected" if firestore_manager and db else "disconnected"
-    return jsonify({
+    return {
         "status": "healthy",
         "firestore": firestore_status
-    })
+    }
 
-@app.route('/cleanup', methods=['POST'])
-def cleanup_scraper():
+@app.post('/cleanup')
+async def cleanup_scraper():
     """Cleanup scraper browser when needed."""
     async def cleanup_async():
         global scraper
@@ -294,32 +280,33 @@ def cleanup_scraper():
 
     try:
         result = run_async(cleanup_async(), timeout=60)
-        return jsonify(result)
+        return result
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == '__main__':
+# Startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
     if not firestore_manager:
         logger.warning("Starting app without Firestore connection")
-    
+
+@app.on_event("shutdown")
+async def shutdown_event():
     # Cleanup scraper on app shutdown
-    import atexit
-    
-    def cleanup_on_exit():
-        # try to cleanup scraper and stop the background loop
-        try:
-            if scraper:
-                # schedule cleanup in the background loop
-                try:
-                    run_async(scraper.cleanup(), timeout=60)
-                except Exception:
-                    pass
-        finally:
-            # stop background loop
+    try:
+        if scraper:
+            # schedule cleanup in the background loop
             try:
-                _bg_loop.call_soon_threadsafe(_bg_loop.stop)
+                run_async(scraper.cleanup(), timeout=60)
             except Exception:
                 pass
+    finally:
+        # stop background loop
+        try:
+            _bg_loop.call_soon_threadsafe(_bg_loop.stop)
+        except Exception:
+            pass
 
-    atexit.register(cleanup_on_exit)
-    app.run(debug=True)
+if __name__ == '__main__':
+    
+    uvicorn.run(app, host="0.0.0.0", port=5000)
