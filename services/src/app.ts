@@ -8,6 +8,7 @@ import { extractClientIP, isPrivateOrLocalIP } from './utils/ipUtils';
 import HealthRoutes from './routes/health';
 import BotRoutes from './routes/bot';
 import ChatRoutes from './routes/chat';
+import { CertificationRoutes } from './routes/certifications';
 
 const app = express();
 
@@ -74,9 +75,10 @@ app.get('/', (req, res) => {
 });
 
 // Health check route
-app.use('/api/health', HealthRoutes);
-app.use('/api', BotRoutes);
-app.use('/api', ChatRoutes);
+app.use('/aryabytes/api/services/health', HealthRoutes);
+app.use('/aryabytes/api/services', BotRoutes);
+app.use('/aryabytes/api/services', ChatRoutes);
+app.use('/aryabytes/api/services', CertificationRoutes);
 
 // 404 handler
 app.use((req, res) => {
