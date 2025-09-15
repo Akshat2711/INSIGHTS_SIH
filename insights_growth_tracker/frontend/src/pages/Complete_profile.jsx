@@ -67,13 +67,9 @@ const CompleteProfile = () => {
           try {
             const parsedResponses = JSON.parse(savedResponses);
             const existingResponses = {};
-            
             postsArray.forEach((post, index) => {
-              if (post.text) {
-                const postKey = post.text.split('\n').slice(0, 2).join('\n').trim();
-                if (parsedResponses[postKey]) {
-                  existingResponses[index] = parsedResponses[postKey];
-                }
+              if (post.post_id && parsedResponses[post.post_id]) {
+                existingResponses[index] = parsedResponses[post.post_id];
               }
             });
                         
@@ -151,40 +147,35 @@ const CompleteProfile = () => {
 
 
 
-
 const saveAllResponses = async () => {
-
   setLoading(true);
-  // Include current response if not saved yet
-  const finalResponses = {
-    ...userResponses
-  };
   
-  if (currentResponse.trim()) {
-    finalResponses[currentPostIndex] = currentResponse.trim();
-  }
-
-  // Create response object with image URLs as keys (this becomes role_data)
-  const roleData = {};
-  posts.forEach((post, index) => {
-    if (finalResponses[index] && post.text) {
-      // Extract first 2 lines of post text as key
-      const postKey = post.text.split('\n').slice(0, 2).join('\n').trim();
-      roleData[postKey] = finalResponses[index];
-    }
-  });
-
-  // Save to localStorage first
-  localStorage.setItem('insight_user_post_responses', JSON.stringify(roleData));
-  
-  // Send to backend to update points
   try {
+    // Include current response if not saved yet
+    const finalResponses = {
+      ...userResponses
+    };
+    
+    if (currentResponse.trim()) {
+      finalResponses[currentPostIndex] = currentResponse.trim();
+    }
+
+    // Create response object with post_id as keys
+    const roleData = {};
+    posts.forEach((post, index) => {
+      if (finalResponses[index] && post.post_id) {
+        roleData[post.post_id] = finalResponses[index];
+      }
+    });
+
+    // Save locally first
+    localStorage.setItem('insight_user_post_responses', JSON.stringify(roleData));
+    
+    // Update backend
     const username = localStorage.getItem("linkedin_id");
     const response = await fetch('http://127.0.0.1:5000/update_points', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: username,
         roles: roleData
@@ -194,21 +185,25 @@ const saveAllResponses = async () => {
     if (response.ok) {
       const result = await response.json();
       console.log('Points updated successfully:', result);
-      // Optionally update the UI with new points
+      
+      // Update local state immediately
+      if (result.total_points) {
+        setTotalPoints(result.total_points);
+      }
+      
+      alert(`Points updated successfully! New total: ${result.total_points || 'calculating...'} points`);
     } else {
-      console.error('Failed to update points');
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to update points');
     }
+    
   } catch (error) {
     console.error('Error updating points:', error);
+    alert(`Failed to update points: ${error.message}. Please try again.`);
+  } finally {
+    setLoading(false);
   }
-  
-  setLoading(false);
-  console.log('Saved all responses and updated points:', roleData);
-  alert('logout and login again to see updated points');
 };
-
-
-
 
 
 
@@ -228,9 +223,8 @@ const saveAllResponses = async () => {
     // Create response object with image URLs as keys
     const responseObject = {};
     posts.forEach((post, index) => {
-      if (updatedResponses[index] && post.text) {
-        const postKey = post.text.split('\n').slice(0, 2).join('\n').trim();
-        responseObject[postKey] = updatedResponses[index];
+      if (updatedResponses[index] && post.post_id) {
+        responseObject[post.post_id] = updatedResponses[index];
       }
     });
 

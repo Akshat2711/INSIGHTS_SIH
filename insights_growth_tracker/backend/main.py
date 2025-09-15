@@ -47,7 +47,7 @@ app = FastAPI()
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -256,6 +256,85 @@ async def update_marks_for_role(request_data: UpdatePointsRequest):
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+#searching endpoint
+@app.get('/search-users-by-keyword')
+async def search_users_by_keyword(keyword: str, limit: int = 5):
+    """
+    Get top users based on keyword occurrence in their scraped data.
+    
+    Args:
+        keyword: The keyword to search for
+        limit: Maximum number of results to return (default: 5, max: 20)
+    
+    Returns:
+        List of users ranked by keyword occurrence frequency
+    """
+    if not firestore_manager:
+        raise HTTPException(status_code=500, detail="Firestore not initialized")
+    
+    if not keyword or not keyword.strip():
+        raise HTTPException(status_code=400, detail="Keyword parameter is required")
+    
+    # Limit the maximum results to prevent performance issues
+    limit = min(max(1, limit), 20)
+    
+    try:
+        # Use the optimized search method
+        search_results = firestore_manager.search_users_by_keyword(keyword.strip(), limit)
+        
+        if not search_results:
+            return {
+                "keyword": keyword,
+                "total_results": 0,
+                "message": "No users found with the specified keyword",
+                "top_users": []
+            }
+        
+        # Format results for API response
+        top_users = []
+        for rank, result in enumerate(search_results, 1):
+            top_users.append({
+                "rank": rank,
+                "user_id": result['user_id'],
+                "name": result['name'],
+                "keyword_occurrences": result['keyword_count'],
+                "total_points": result['total_points'],
+                "sample_matches": result.get('matched_content', [])  # Show where keyword was found
+            })
+        
+        return {
+            "keyword": keyword,
+            "total_results": len(search_results),
+            "top_users": top_users
+        }
+        
+    except Exception as e:
+        logger.error(f"API error searching for keyword '{keyword}': {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Others
 @app.get('/health')

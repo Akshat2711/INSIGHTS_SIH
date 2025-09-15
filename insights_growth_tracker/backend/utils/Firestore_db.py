@@ -153,3 +153,65 @@ class FirestoreUserManager:
         except Exception as e:
             logger.error(f"Error updating user roles for {user_id}: {e}")
             return False
+        
+
+
+
+    def search_users_by_keyword(self, keyword: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search for users based on keyword occurrence in their scraped data.
+        Returns top users sorted by keyword frequency.
+        """
+        try:
+            # Get all users from the collection
+            users_ref = self.db.collection(self.collection_name)
+            docs = users_ref.stream()
+            
+            keyword_results = []
+            keyword_lower = keyword.lower().strip()
+            
+            for doc in docs:
+                user_data = doc.to_dict()
+                user_id = doc.id
+                keyword_count = 0
+                
+                # Search in original_scrapping data
+                original_scrapping = user_data.get('original_scrapping', [])
+                if isinstance(original_scrapping, list):
+                    for item in original_scrapping:
+                        if isinstance(item, dict):
+                            # Search in all string fields of the scraped item
+                            for field_value in item.values():
+                                if isinstance(field_value, str):
+                                    keyword_count += field_value.lower().count(keyword_lower)
+                
+                # Search in post_to_no data
+                post_to_no = user_data.get('post_to_no', {})
+                if isinstance(post_to_no, dict):
+                    for category, items in post_to_no.items():
+                        if isinstance(items, list):
+                            for item in items:
+                                if isinstance(item, dict):
+                                    for field_value in item.values():
+                                        if isinstance(field_value, str):
+                                            keyword_count += field_value.lower().count(keyword_lower)
+                
+                # If keyword found, add to results
+                if keyword_count > 0:
+                    keyword_results.append({
+                        'user_id': user_id,
+                        'keyword_count': keyword_count,
+                        'total_points': user_data.get('total_points', 0),
+                        'name': user_data.get('name', user_id),
+                        'user_data': user_data  # Include full user data if needed
+                    })
+            
+            # Sort by keyword count (descending), then by total_points as tiebreaker
+            keyword_results.sort(key=lambda x: (x['keyword_count'], x['total_points']), reverse=True)
+            
+            # Return top results
+            return keyword_results[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error searching users by keyword '{keyword}': {e}")
+            return []
