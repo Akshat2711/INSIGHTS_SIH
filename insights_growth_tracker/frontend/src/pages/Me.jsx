@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronRight, ChevronLeft, Calendar, TrendingUp, Award, Trophy, Code, BookOpen, Loader,ExternalLink,ChartColumn } from 'lucide-react';
+import Particles from '../components/Particles';
 
 const Me = () => {
   const [expandedPost, setExpandedPost] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef(null);
 
   // Theme detection and update function
   const updateTheme = () => {
@@ -198,6 +201,29 @@ const Me = () => {
     if (typeof commentsStr === 'number') return commentsStr;
     const match = commentsStr.match(/(\d+) comments?/);
     return match ? parseInt(match[1]) : 0;
+  };
+
+  // Carousel navigation functions
+  const scrollToSlide = (slideIndex) => {
+    if (carouselRef.current) {
+      const cardWidth = 380; // Approximate card width including gap
+      carouselRef.current.scrollTo({
+        left: slideIndex * cardWidth,
+        behavior: 'smooth'
+      });
+      setCurrentSlide(slideIndex);
+    }
+  };
+
+  const nextSlide = () => {
+    const maxSlides = Math.max(0, (linkedInPosts?.length || 0) - 3);
+    const newSlide = Math.min(currentSlide + 1, maxSlides);
+    scrollToSlide(newSlide);
+  };
+
+  const prevSlide = () => {
+    const newSlide = Math.max(currentSlide - 1, 0);
+    scrollToSlide(newSlide);
   };
 
   // Loading state
@@ -401,476 +427,668 @@ const Me = () => {
   ];
 
   return (
-    <div className={`space-y-4 mt-10 ${cardBg}`}>
-      {/* Timeline Section */}
-      <section className={`p-4 ${darkMode ? "bg-black" : "bg-gray-100"} min-h-screen`}>
-        <div className="relative"></div>
-        <h2 className={`text-3xl font-bold ${darkMode ? "text-cyan-400" : "text-cyan-700"} mb-6 flex items-center mt-8`}>
-          <Calendar className={`mr-3 ${darkMode ? "text-cyan-400" : "text-cyan-700"}`} size={28} />
-          Post Highlights
-        </h2>
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Fixed Particles Background - covering entire page */}
+      <div className="fixed inset-0 w-full h-full z-0">
+        <Particles
+          particleColors={['#ffffff', '#ffffff', '#ffffff']}
+          particleCount={400}
+          particleSpread={15}
+          speed={0.1}
+          particleBaseSize={180}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          particleHoverFactor={0.5}
+          sizeRandomness={0.6}
+          cameraDistance={20}
+        />
+      </div>
+      
+      {/* Content Container */}
+      <div className="relative z-10 space-y-4 pt-16">
 
-       {/* Navigation Arrows */}
-          <button
-            id="scrollLeft"
-            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full shadow-lg transition-all ${
-              darkMode ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-100 text-gray-900"
-            } opacity-0 pointer-events-none`}
-            onClick={() => {
-              const container = document.getElementById('postsContainer');
-              container.scrollBy({ left: -400, behavior: 'smooth' });
-            }}
-          >
-            <ChevronLeft size={20} />
-          </button>
+      {/* Modern Post Highlights Section */}
+      <section className="relative p-8 min-h-screen overflow-hidden pt-8">
+        {/* Glassmorphism background container */}
+        <div className={`absolute inset-4 rounded-3xl backdrop-blur-md border shadow-2xl ${
+          darkMode 
+            ? 'bg-white/[0.02] border-white/5 shadow-black/20' 
+            : 'bg-black/[0.02] border-black/5 shadow-black/10'
+        }`}></div>
 
-          <button
-            id="scrollRight"
-            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full shadow-lg transition-all ${
-              darkMode ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-100 text-gray-900"
-            } opacity-0 pointer-events-none`}
-            onClick={() => {
-              const container = document.getElementById('postsContainer');
-              container.scrollBy({ left: 400, behavior: 'smooth' });
-            }}
-          >
-            <ChevronRight size={20} />
-          </button>
 
-          {/* Horizontal Scroll Container */}
-          <div 
-            id="postsContainer"
-            className="flex overflow-x-auto space-x-6 pb-4 hide-scrollbar"
-            onScroll={(e) => {
-              const container = e.target;
-              const leftBtn = document.getElementById('scrollLeft');
-              const rightBtn = document.getElementById('scrollRight');
-              
-              // Show/hide left arrow
-              if (container.scrollLeft > 10) {
-                leftBtn.classList.remove('opacity-0', 'pointer-events-none');
-              } else {
-                leftBtn.classList.add('opacity-0', 'pointer-events-none');
-              }
-              
-              // Show/hide right arrow
-              const isScrollable = container.scrollWidth > container.clientWidth;
-              const isAtEnd = container.scrollLeft >= container.scrollWidth - container.clientWidth - 10;
-              
-              if (isScrollable && !isAtEnd) {
-                rightBtn.classList.remove('opacity-0', 'pointer-events-none');
-              } else {
-                rightBtn.classList.add('opacity-0', 'pointer-events-none');
-              }
-            }}
-          >
-          {linkedInPosts.map((post, index) => {
-            const TypeIcon = getTypeIcon(post.type);
-            const postText = post.text || "No content available";
-            const preview =
-              postText.length > 150
-                ? postText.substring(0, 150) + "..."
-                : postText;
-
-            return (
-              <div
-                key={post.id}
-                data-post-index={index} // <-- Add this line
-                className={`flex-shrink-0 w-96 rounded-2xl shadow-xl border relative overflow-hidden group hover:shadow-cyan-500/30 transition-all duration-300 ${cardBg} ${darkMode ? "border-neutral-800" : "border-gray-300"}`}
-              >
-                {/* Top Bar with Icon + Meta */}
-                <div className={`flex items-center justify-between p-4 border-b ${darkMode ? "border-neutral-800" : "border-gray-200"}`}>
-                  {/* Left Side */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    {/* Icon */}
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-full ${darkMode ? "bg-purple-900" : "bg-purple-200"} shadow-md flex-shrink-0`}>
-                      <TypeIcon size={18} className={darkMode ? "text-white" : "text-purple-900"} />
-                    </div>
-
-                    {/* Text */}
-                    <div className="min-w-0">
-                      <h3 className={`font-semibold text-sm line-clamp-2 max-w-[180px] ${textColor}`}>
-                        {post.author_name}
-                      </h3>
-                      <p className={`text-xs ${secondaryText}`}>
-                        {post.timestamp.split(" • ")[0]}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right Side Badge */}
-                  <span
-                    className={`text-xs font-bold text-white px-2 py-1 rounded-full ${getTypeColor(post.type)} flex-shrink-0 ml-2`}
-                    style={{
-                      backgroundColor: darkMode ? undefined : "#a5b4fc"
-                    }}
-                  >
-                    {post.achievement}
-                  </span>
-                </div>
-
-                {/* Images Section */}
-                {post.images && post.images.length > 0 && (
-                  <div
-                    className={`grid ${post.images.length > 1 ? "grid-cols-2" : "grid-cols-1"} gap-1`}
-                  >
-                    {post.images.slice(0, 4).map((img, i) => (
-                      <img
-                        key={i}
-                        src={img}
-                        alt="Post media"
-                        className="w-full h-40 object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    ))}
-                    {post.images.length > 4 && (
-                      <div className={`flex items-center justify-center ${darkMode ? "bg-neutral-800 text-gray-300" : "bg-gray-200 text-gray-500"} text-sm`}>
-                        +{post.images.length - 4} more
-                      </div>
-                    )}
-                  </div>
-                )}
-
-            {/* Post Content */}
-                <div className="p-4">
-                  <div className={`overflow-hidden transition-all duration-300 ${expandedPost === post.id ? 'max-h-none' : 'max-h-20'}`}>
-                    <p className={`${darkMode ? "text-gray-200" : "text-gray-700"} text-sm leading-relaxed mb-3`}>
-                      {expandedPost === post.id ? postText : preview}
-                    </p>
-                  </div>
-
-                  {post.hashtags && post.hashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {post.hashtags.slice(0, 3).map((tag, i) => (
-                        <span
-                          key={i}
-                          className={`text-xs ${darkMode ? "text-cyan-300 bg-cyan-900/30" : "text-cyan-700 bg-cyan-100"} px-2 py-1 rounded`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {post.hashtags.length > 3 && (
-                        <span className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                          +{post.hashtags.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Reactions + Comments */}
-                  <div className={`flex gap-4 text-xs ${secondaryText}`}>
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 ${darkMode ? "bg-cyan-400" : "bg-cyan-700"} rounded-full`}></span>
-                      {getReactionCount(post.reactions)} reactions
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 ${darkMode ? "bg-pink-500" : "bg-pink-300"} rounded-full`}></span>
-                      {getCommentCount(post.comments)} comments
-                    </span>
-                  </div>
-
-                  {/* Expand/Collapse */}
-                  <button
-                    onClick={() =>
-                      setExpandedPost(expandedPost === post.id ? null : post.id)
-                    }
-                    className={`absolute top-1 right-3 ${darkMode ? "text-cyan-400 hover:text-cyan-200" : "text-cyan-700 hover:text-cyan-500"} transition-colors`}
-                  >
-                    {expandedPost === post.id ? (
-                      <ChevronDown size={18} />
-                    ) : (
-                      <ChevronRight size={18} />
-                    )}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        
-      </section>
-
-      {/* Points Analytics Section */}
-      <section className={`w-full py-20 px-6 ${darkMode ? "bg-black" : "bg-gray-50"}`}>
-              <h2 className={`text-3xl font-bold ${darkMode ? "text-cyan-400" : "text-cyan-700"} mb-10 flex items-center w-full `}>
-                <TrendingUp className={`mr-3 ${darkMode ? "text-cyan-400" : "text-cyan-700"}`} size={28} />
-                Points Analytics
-              </h2>
-
-                <h2 className={`text-3xl font-bold mb-12 flex items-center justify-center 
-                  ${darkMode ? "text-white" : "text-black"}`}>
-                  <ChartColumn className={`mr-3 ${darkMode ? "text-white" : "text-black"}`} size={28} />
-                  Participation in Various Events
-                </h2>
-
-       {chartData.length > 0 && (
-          <div className={`w-full max-w-7xl mx-auto mb-12 rounded-2xl shadow-xl p-6 border ${cardBg} ${darkMode ? "border-neutral-800" : "border-gray-300"}`}>
-            {/* Chart */}
-            <div className="relative h-64 sm:h-80 lg:h-96 w-full overflow-x-auto hide-scrollbar">
-              <svg
-                className="w-full h-full min-w-[600px]"
-                viewBox="0 0 100 50"
-                preserveAspectRatio="none"
-                style={{ vectorEffect: "non-scaling-stroke" }}
-              >
-                {/* Horizontal Gridlines */}
-                {[0, 25, 50, 75, 100].map((y) => (
-                  <line
-                    key={y}
-                    x1="10"
-                    y1={40 - (y / 100) * 30}
-                    x2="90"
-                    y2={40 - (y / 100) * 30}
-                    stroke="rgba(255,255,255,0.2)"
-                    strokeWidth="0.2"
-                    vectorEffect="non-scaling-stroke"
-                    opacity={y === 0 || y === 100 ? "0.7" : "0.3"}
-                  />
-                ))}
-
-                {/* Vertical Gridlines */}
-                {chartData.map((_, i) => (
-                  <line
-                    key={i}
-                    x1={10 + (i / Math.max(chartData.length - 1, 1)) * 80}
-                    y1="10"
-                    x2={10 + (i / Math.max(chartData.length - 1, 1)) * 80}
-                    y2="40"
-                    stroke="rgba(255,255,255,0.1)"
-                    strokeWidth="0.2"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                ))}
-
-                {/* Bars */}
-                {chartData.map((d, i) => (
-                  <rect
-                    key={i}
-                    x={10 + (i / Math.max(chartData.length - 1, 1)) * 80 - 4}
-                    y={40 - (d.points / maxPoints) * 30}
-                    width="8"
-                    height={(d.points / maxPoints) * 30}
-                    fill="url(#fluorescentGradient)"
-                    className="hover:fill-cyan-500 transition-all cursor-pointer"
-                  >
-                    <title>{`${d.category}: ${d.points} points from ${d.count} achievements`}</title>
-                  </rect>
-                ))}
-
-                {/* Gradient Definition */}
-                <defs>
-                  <linearGradient id="fluorescentGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00FFFF" />
-                    <stop offset="100%" stopColor="#8A2BE2" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Labels Under Chart */}
-            <div className="flex justify-between items-center mt-6 px-2">
-              <div className="flex-1 flex justify-between">
-                {chartData.map((d, i) => (
-                  <div key={i} className="text-center">
-                    <div className={`text-xs font-medium ${darkMode ? "text-cyan-300" : "text-cyan-700"} mb-1`}>
-                      <span className="hidden sm:inline">{d.category}</span>
-                      <span className="sm:hidden">{d.category.slice(0, 4)}</span>
-                    </div>
-                    <div className={`text-xs ${secondaryText}`}>
-                      {d.count} achievements
-                    </div>
-                    <div className={`text-xs font-bold ${darkMode ? "text-cyan-400" : "text-cyan-700"} mt-1`}>
-                      {d.points} pts
-                    </div>
-                  </div>
-                ))}
+        <div className="relative z-10 max-w-7xl mx-auto pt-4">
+          {/* Modern Header */}
+          <div className="text-center mb-16 mt-4">
+            <div className="inline-flex items-center gap-4 mb-6">
+              <div className={`p-3 rounded-2xl ${darkMode ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30' : 'bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200'} backdrop-blur-xl`}>
+                <Calendar className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={32} />
               </div>
             </div>
+            <h2 className={`text-5xl font-bold mb-4 ${darkMode ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400' : 'bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600'} bg-clip-text text-transparent`}>
+              Post Highlights
+            </h2>
+            <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+              Discover your most impactful moments and achievements across your professional journey
+            </p>
           </div>
-        )}
 
+          {/* Cards Carousel Layout */}
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full backdrop-blur-xl border transition-all duration-300 ${
+                currentSlide === 0
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:scale-110 hover:shadow-lg'
+              } ${
+                darkMode 
+                  ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' 
+                  : 'bg-black/10 border-black/20 text-black hover:bg-black/20'
+              }`}
+            >
+              <ChevronLeft size={24} />
+            </button>
+            
+            <button
+              onClick={nextSlide}
+              disabled={linkedInPosts && currentSlide >= Math.max(0, linkedInPosts.length - 3)}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full backdrop-blur-xl border transition-all duration-300 ${
+                linkedInPosts && currentSlide >= Math.max(0, linkedInPosts.length - 3)
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:scale-110 hover:shadow-lg'
+              } ${
+                darkMode 
+                  ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' 
+                  : 'bg-black/10 border-black/20 text-black hover:bg-black/20'
+              }`}
+            >
+              <ChevronRight size={24} />
+            </button>
 
-        {/* Stats Cards */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className={`rounded-2xl shadow-lg border p-8 transition-all text-center 
-            ${cardBg} ${darkMode ? "border-neutral-800 hover:shadow-cyan-500/30" : "border-gray-300 hover:shadow-cyan-200/40"}`}>
-            <div className={`text-5xl font-extrabold mb-3 
-              ${darkMode ? "text-cyan-400" : "text-cyan-700"}`}>{totalPoints}</div>
-            <div className={`text-sm uppercase tracking-wide ${secondaryText}`}>Total Points</div>
-          </div>
-          <div className={`rounded-2xl shadow-lg border p-8 transition-all text-center 
-            ${cardBg} ${darkMode ? "border-neutral-800 hover:shadow-pink-500/30" : "border-gray-300 hover:shadow-pink-200/40"}`}>
-            <div className={`text-5xl font-extrabold mb-3 
-              ${darkMode ? "text-pink-400" : "text-pink-600"}`}>{avgPointsPerAchievement}</div>
-            <div className={`text-sm uppercase tracking-wide ${secondaryText}`}>Avg Points</div>
-          </div>
-          <div className={`rounded-2xl shadow-lg border p-8 transition-all text-center 
-            ${cardBg} ${darkMode ? "border-neutral-800 hover:shadow-green-500/30" : "border-gray-300 hover:shadow-green-200/40"}`}>
-            <div className={`text-5xl font-extrabold mb-3 
-              ${darkMode ? "text-green-400" : "text-green-600"}`}>{totalAchievements}</div>
-            <div className={`text-sm uppercase tracking-wide ${secondaryText}`}>Total Achievements</div>
-          </div>
-        </div>
-      </section>
+            {/* Carousel Container */}
+            <div 
+              ref={carouselRef}
+              className="overflow-x-auto scrollbar-hide px-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <div className="flex gap-6 pb-4" style={{ width: `${(linkedInPosts?.length || 0) * 380}px` }}>
+                {linkedInPosts?.map((post, index) => {
+                  const TypeIcon = getTypeIcon(post.type);
+                  const postText = post.text || "No content available";
+                  const preview = postText.length > 120 ? postText.substring(0, 120) + "..." : postText;
 
-
-      {/* Achievement Categories Section */}
-      <section className={`p-8 ${darkMode ? "bg-[#0a0a0f]" : "bg-white"} min-h-screen`}>
-        <h2 className={`text-3xl font-bold mb-10 flex items-center tracking-tight ${darkMode ? "text-white" : "text-gray-900"}`}>
-          <Award className={`mr-3 ${darkMode ? "text-cyan-400" : "text-cyan-700"} drop-shadow-[0_0_8px_#22d3ee]`} size={28} />
-          Achievement Summary
-        </h2>
-
-        {/* Category Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-          {eventCategories.map((category, index) => {
-            const Icon = category.icon;
-            return (
-              <div
-                key={category.name}
-                className={`rounded-2xl p-5 flex items-center justify-between shadow-md border transition-all duration-300 ${darkMode ? "bg-[#111] border-transparent hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)]" : "bg-gray-50 border-gray-200 hover:border-cyan-200 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]"}`}
-                style={{
-                  opacity: 0,
-                  transform: 'translateY(20px)',
-                  animation: `fadeUp 0.6s ease-out ${index * 0.1 + 0.3}s forwards`,
-                }}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`p-4 rounded-2xl shadow-[0_0_12px_rgba(34,211,238,0.8)] mr-4 transition-transform group-hover:scale-105 ${darkMode ? "bg-gradient-to-tr from-cyan-400 to-blue-500" : "bg-gradient-to-tr from-cyan-200 to-blue-200"}`}
-                  >
-                    <Icon className={darkMode ? "text-black" : "text-blue-900"} size={22} />
-                  </div>
-                  <div>
-                    <span className={`font-semibold text-lg block ${darkMode ? "text-white" : "text-gray-900"}`}>{category.name}</span>
-                    {category.displayType !== 'value' && category.displayType !== 'summary' && (
-                      <span className={`text-sm ${secondaryText}`}>{category.points} points earned</span>
-                    )}
-                    {category.displayType === 'value' && (
-                      <span className={`text-sm ${secondaryText}`}>Current CGPA</span>
-                    )}
-                  </div>
-                </div>
-                <span className={`text-3xl font-bold drop-shadow-[0_0_10px_#22d3ee] ${darkMode ? "text-cyan-300" : "text-cyan-700"}`}>
-                  {category.count}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Detailed Breakdown */}
-        <div className="mt-14 space-y-10">
-          <h3 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>Detailed Breakdown</h3>
-
-          {Object.entries(safePostToNo).map(([category, items]) =>
-            Array.isArray(items) && items.length > 0 ? (
-              <div
-                key={category}
-                className={`rounded-2xl p-6 border shadow-lg transition-all ${darkMode ? "bg-[#141414] border-gray-800 hover:shadow-[0_0_25px_rgba(236,72,153,0.5)]" : "bg-gray-50 border-gray-200 hover:shadow-[0_0_25px_rgba(236,72,153,0.2)]"}`}
-              >
-                <h4 className={`text-lg font-semibold mb-5 capitalize flex items-center ${darkMode ? "text-magenta-400" : "text-pink-700"}`}>
-                  {React.createElement(getTypeIcon(category), {
-                    size: 20,
-                    className: `mr-2 ${darkMode ? "text-pink-400" : "text-pink-700"} drop-shadow-[0_0_6px_#ec4899]`,
-                  })}
-                  {category.replace("_", " ")}
-                </h4>
-
-                <div className="space-y-4">
-                  {items.map((item, index) => (
+                  return (
                     <div
-                      key={index}
-                      className={`p-5 rounded-xl border transition-all ${darkMode ? "bg-[#1a1a1f] border-gray-700 hover:border-violet-400/40 hover:shadow-[0_0_15px_rgba(167,139,250,0.5)]" : "bg-white border-gray-200 hover:border-violet-200 hover:shadow-[0_0_15px_rgba(167,139,250,0.2)]"}`}
+                      key={post.id}
+                      data-post-index={index}
+                      className="flex-shrink-0 w-[360px] transform transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2"
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          {item?.position && (
-                            <span className={`font-medium ${darkMode ? "text-cyan-300" : "text-cyan-700"}`}>
-                              Position:{" "}
-                              {item.position === "1" || item.position === "Winner"
-                                ? "1st"
-                                : item.position === "2"
-                                ? "2nd"
-                                : item.position === "3"
-                                ? "3rd"
-                                : item.position}
-                            </span>
-                          )}
-                          {item?.type && (
-                            <span className={`ml-2 font-medium ${darkMode ? "text-violet-300" : "text-violet-700"}`}>{item.type}</span>
-                          )}
-                          <div className={`text-sm mt-1 ${secondaryText}`}>
-                            {Array.isArray(item?.timestamp)
-                              ? item.timestamp.join(", ")
-                              : item?.timestamp}{" "}
-                            • Reactions: {item?.reaction || 0} • Comments: {item?.comments || 0}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                            <span
-                              className={`font-bold text-lg drop-shadow-[0_0_8px_#4ade80] 
-                                ${item?.why?.toLowerCase().includes("deducted") 
-                                  ? "text-red-400 drop-shadow-[0_0_8px_#f87171]"   // 🔴 red neon
-                                  : darkMode 
-                                    ? "text-green-300" 
-                                    : "text-green-700"
-                                }`}
-                            >
-                              {item?.points || 0} pts
-                            </span>
-
-                          <div className={`text-xs max-w-xs ${secondaryText}`}>
-                            {item?.why || "Achievement points"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Source Posts */}
-                      {item?.source_post_excerpt?.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          <h5 className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Source Posts:</h5>
-                          {item.source_post_excerpt.map((excerpt, excerptIndex) => (
-                            <div
-                              key={excerptIndex}
-                              className={`p-3 rounded-lg text-sm border ${darkMode ? "bg-[#222] border-gray-700" : "bg-gray-100 border-gray-200"}`}
-                            >
-                              <p className={`mb-2 line-clamp-3 ${darkMode ? "text-gray-200" : "text-gray-700"}`}>
-                                {excerpt.length > 150 ? excerpt.substring(0, 150) + "..." : excerpt}
+                      {/* Enhanced Carousel Card */}
+                      <div className={`rounded-3xl p-6 backdrop-blur-2xl border transition-all duration-500 group hover:shadow-2xl h-full ${
+                        darkMode 
+                          ? 'bg-gradient-to-br from-white/8 via-white/[0.03] to-white/8 border-white/15 hover:border-purple-400/40 hover:shadow-purple-500/30' 
+                          : 'bg-gradient-to-br from-white/90 via-white/50 to-white/90 border-white/30 hover:border-purple-300/60 hover:shadow-purple-200/40'
+                      }`}>
+                        
+                        {/* Enhanced floating gradient orb */}
+                        <div className={`absolute -top-3 -right-3 w-20 h-20 ${
+                          darkMode ? 'bg-gradient-to-br from-purple-500/30 to-pink-500/30' : 'bg-gradient-to-br from-purple-200/70 to-pink-200/70'
+                        } rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`}></div>
+                        
+                        {/* Card Header */}
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`p-3 rounded-xl ${
+                              darkMode ? 'bg-gradient-to-br from-purple-600/40 to-pink-600/40 shadow-lg' : 'bg-gradient-to-br from-purple-100 to-pink-100 shadow-md'
+                            } backdrop-blur-sm flex-shrink-0`}>
+                              <TypeIcon size={20} className={`${darkMode ? 'text-purple-300' : 'text-purple-700'}`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className={`font-bold text-base ${darkMode ? 'text-white' : 'text-gray-900'} line-clamp-1`}>
+                                {post.author_name}
+                              </h3>
+                              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {post.timestamp.split(" • ")[0]}
                               </p>
-                              {item?.source_post_index?.[excerptIndex] !== undefined && (
-                                <button
-                                  onClick={() => {
-                                    const postIndex = item.source_post_index[excerptIndex];
-                                    const postElement = document.querySelector(
-                                      `[data-post-index="${postIndex}"]`
-                                    );
-                                    if (postElement) {
-                                      postElement.scrollIntoView({
-                                        behavior: "smooth",
-                                        block: "center",
-                                      });
-                                      postElement.classList.add("highlight-post");
-                                      setTimeout(
-                                        () => postElement.classList.remove("highlight-post"),
-                                        3000
-                                      );
-                                    }
-                                  }}
-                                  className={`text-xs px-2 py-1 rounded transition-colors shadow-sm ${darkMode ? "bg-cyan-500 text-black hover:bg-cyan-400" : "bg-cyan-200 text-cyan-900 hover:bg-cyan-100"}`}
+                            </div>
+                          </div>
+                          
+                          {/* Enhanced Achievement Badge */}
+                          <div className={`px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 shadow-lg transform group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                            {post.achievement}
+                          </div>
+                        </div>
+
+                        {/* Images Section - Enhanced */}
+                        {post.images && post.images.length > 0 && (
+                          <div className="mb-6">
+                            <div className={`grid gap-3 rounded-xl overflow-hidden ${
+                              post.images.length === 1 ? "grid-cols-1" : 
+                              post.images.length === 2 ? "grid-cols-2" :
+                              post.images.length === 3 ? "grid-cols-2" : "grid-cols-2"
+                            }`}>
+                              {post.images.slice(0, 4).map((img, i) => (
+                                <div 
+                                  key={i} 
+                                  className={`relative overflow-hidden rounded-lg ${
+                                    post.images.length === 3 && i === 0 ? "col-span-2" : ""
+                                  }`}
                                 >
-                                  <ExternalLink size={12} />
-                                </button>
+                                  <img
+                                    src={img}
+                                    alt="Post media"
+                                    className="w-full h-28 object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                </div>
+                              ))}
+                              {post.images.length > 4 && (
+                                <div className={`flex items-center justify-center text-sm font-medium rounded-lg h-28 ${
+                                  darkMode ? "bg-gray-800/60 text-gray-300" : "bg-gray-100/90 text-gray-600"
+                                }`}>
+                                  +{post.images.length - 4}
+                                </div>
                               )}
                             </div>
-                          ))}
+                          </div>
+                        )}
+
+                        {/* Enhanced Content Section */}
+                        <div className="space-y-4">
+                          <div className={`overflow-hidden transition-all duration-500 ${
+                            expandedPost === post.id ? 'max-h-none' : 'max-h-20'
+                          }`}>
+                            <p className={`text-sm leading-relaxed ${
+                              darkMode ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                              {expandedPost === post.id ? postText : preview}
+                            </p>
+                          </div>
+
+                          {/* Enhanced Hashtags */}
+                          {post.hashtags && post.hashtags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {post.hashtags.slice(0, expandedPost === post.id ? post.hashtags.length : 3).map((tag, i) => (
+                                <span
+                                  key={i}
+                                  className={`text-xs px-3 py-1.5 rounded-lg font-medium backdrop-blur-sm ${
+                                    darkMode 
+                                      ? 'bg-purple-600/25 text-purple-300 border border-purple-500/40' 
+                                      : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                  }`}
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                              {post.hashtags.length > 3 && expandedPost !== post.id && (
+                                <span className={`text-xs px-3 py-1.5 rounded-lg ${
+                                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                                }`}>
+                                  +{post.hashtags.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Enhanced Stats Bar */}
+                          <div className={`flex items-center justify-between pt-4 border-t ${
+                            darkMode ? 'border-white/15' : 'border-gray-200/60'
+                          }`}>
+                            <div className="flex gap-6">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${
+                                  darkMode ? 'from-purple-400 to-pink-400' : 'from-purple-500 to-pink-500'
+                                } shadow-sm`}></div>
+                                <span className={`text-sm font-medium ${
+                                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                                }`}>
+                                  {getReactionCount(post.reactions)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${
+                                  darkMode ? 'from-indigo-400 to-cyan-400' : 'from-indigo-500 to-cyan-500'
+                                } shadow-sm`}></div>
+                                <span className={`text-sm font-medium ${
+                                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                                }`}>
+                                  {getCommentCount(post.comments)}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Enhanced Expand Button */}
+                            <button
+                              onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
+                              className={`p-2.5 rounded-xl transition-all duration-300 backdrop-blur-sm ${
+                                darkMode 
+                                  ? 'hover:bg-white/15 text-purple-400 hover:text-purple-300 border border-white/10' 
+                                  : 'hover:bg-purple-50 text-purple-600 hover:text-purple-700 border border-purple-200'
+                              } transform hover:scale-110 shadow-sm`}
+                            >
+                              {expandedPost === post.id ? (
+                                <ChevronDown size={18} />
+                              ) : (
+                                <ChevronRight size={18} />
+                              )}
+                            </button>
+                          </div>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ) : null
-          )}
+            </div>
+            
+            {/* Carousel Indicators */}
+            <div className="flex justify-center mt-8 gap-2">
+              {linkedInPosts && Array.from({ length: Math.max(1, linkedInPosts.length - 2) }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollToSlide(i)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentSlide === i
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 scale-125'
+                      : darkMode
+                        ? 'bg-white/30 hover:bg-white/50'
+                        : 'bg-black/30 hover:bg-black/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Completely Redesigned Points Analytics Section - Dashboard Style */}
+      <section className="relative py-24 px-8 overflow-hidden pt-8">
+        {/* Glassmorphism background container */}
+        <div className={`absolute inset-4 rounded-3xl backdrop-blur-md border shadow-2xl ${
+          darkMode 
+            ? 'bg-white/[0.02] border-white/5 shadow-black/20' 
+            : 'bg-black/[0.02] border-black/5 shadow-black/10'
+        }`}></div>
+
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Dashboard Header */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className={`text-6xl font-black mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Analytics
+                </h2>
+                <div className={`w-24 h-1 ${darkMode ? 'bg-gradient-to-r from-emerald-400 to-blue-400' : 'bg-gradient-to-r from-emerald-600 to-blue-600'} rounded-full`}></div>
+              </div>
+              <div className={`px-6 py-3 rounded-2xl ${darkMode ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'} backdrop-blur-sm`}>
+                <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Performance Overview</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dashboard Grid Layout */}
+          <div className="grid grid-cols-12 gap-8 mb-16">
+            {/* Main Chart - Large Card */}
+            <div className="col-span-12 lg:col-span-8">
+              <div className={`h-96 rounded-3xl p-8 ${darkMode ? 'bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10' : 'bg-gradient-to-br from-black/[0.02] to-black/[0.08] border border-black/10'} backdrop-blur-xl`}>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Achievement Distribution</h3>
+                  <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <span>Active</span>
+                  </div>
+                </div>
+                
+                {/* Horizontal Bar Chart */}
+                {chartData.length > 0 && (
+                  <div className="space-y-4">
+                    {chartData.slice(0, 6).map((item, index) => (
+                      <div key={index} className="group">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {item.category.length > 15 ? item.category.substring(0, 15) + '...' : item.category}
+                          </span>
+                          <span className={`text-sm font-bold ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                            {item.points}pts
+                          </span>
+                        </div>
+                        <div className={`w-full h-3 rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'} overflow-hidden`}>
+                          <div 
+                            className={`h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-1000 ease-out group-hover:shadow-lg group-hover:shadow-emerald-500/30`}
+                            style={{ 
+                              width: `${Math.min((item.points / Math.max(...chartData.map(d => d.points), 1)) * 100, 100)}%`,
+                              animationDelay: `${index * 200}ms`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stats Cards - Sidebar */}
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+              <div className={`rounded-3xl p-6 ${darkMode ? 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200'} backdrop-blur-xl`}>
+                <div className="flex items-center justify-between mb-4">
+                  <TrendingUp className={`${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={24} />
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${darkMode ? 'bg-emerald-400/20 text-emerald-300' : 'bg-emerald-200 text-emerald-800'}`}>+12%</span>
+                </div>
+                <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{totalPoints}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Points Earned</div>
+              </div>
+              
+              <div className={`rounded-3xl p-6 ${darkMode ? 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200'} backdrop-blur-xl`}>
+                <div className="flex items-center justify-between mb-4">
+                  <Award className={`${darkMode ? 'text-blue-400' : 'text-blue-600'}`} size={24} />
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${darkMode ? 'bg-blue-400/20 text-blue-300' : 'bg-blue-200 text-blue-800'}`}>AVG</span>
+                </div>
+                <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{avgPointsPerAchievement}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Average per Achievement</div>
+              </div>
+              
+              <div className={`rounded-3xl p-6 ${darkMode ? 'bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200'} backdrop-blur-xl`}>
+                <div className="flex items-center justify-between mb-4">
+                  <Trophy className={`${darkMode ? 'text-purple-400' : 'text-purple-600'}`} size={24} />
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${darkMode ? 'bg-purple-400/20 text-purple-300' : 'bg-purple-200 text-purple-800'}`}>TOTAL</span>
+                </div>
+                <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{totalAchievements}</div>
+                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Achievements Unlocked</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Completely Redesigned Achievement Summary - Card Layout */}
+      <section className="relative py-24 px-8 overflow-hidden pt-8">
+        {/* Glassmorphism background container */}
+        <div className={`absolute inset-4 rounded-3xl backdrop-blur-md border shadow-2xl ${
+          darkMode 
+            ? 'bg-white/[0.02] border-white/5 shadow-black/20' 
+            : 'bg-black/[0.02] border-black/5 shadow-black/10'
+        }`}></div>
+
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className={`text-5xl font-black mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Achievement
+              <span className={`block text-6xl ${darkMode ? 'bg-gradient-to-r from-purple-400 to-pink-400' : 'bg-gradient-to-r from-purple-600 to-pink-600'} bg-clip-text text-transparent`}>
+                Summary
+              </span>
+            </h2>
+            <div className={`w-32 h-1 mx-auto ${darkMode ? 'bg-gradient-to-r from-purple-400 to-pink-400' : 'bg-gradient-to-r from-purple-600 to-pink-600'} rounded-full`}></div>
+          </div>
+
+          {/* Masonry-style Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {eventCategories.map((category, index) => {
+              const Icon = category.icon;
+              const isSpecial = category.displayType === 'summary';
+              return (
+                <div
+                  key={category.name}
+                  className={`${isSpecial ? 'md:col-span-2 lg:col-span-1' : ''} rounded-3xl p-6 transition-all duration-700 hover:scale-105 hover:-translate-y-2 ${
+                    darkMode 
+                      ? 'bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10 hover:border-purple-400/30' 
+                      : 'bg-gradient-to-br from-white/90 to-white/60 border border-white/20 hover:border-purple-300/50'
+                  } backdrop-blur-xl group cursor-pointer`}
+                  style={{
+                    animationDelay: `${index * 150}ms`,
+                    animation: 'fadeInUp 0.8s ease-out forwards'
+                  }}
+                >
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className={`p-3 rounded-2xl ${
+                      darkMode 
+                        ? 'bg-gradient-to-br from-purple-600/20 to-pink-600/20' 
+                        : 'bg-gradient-to-br from-purple-100 to-pink-100'
+                    } group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`${darkMode ? 'text-purple-400' : 'text-purple-600'}`} size={24} />
+                    </div>
+                    {!isSpecial && (
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        darkMode 
+                          ? 'bg-purple-500/20 text-purple-300' 
+                          : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {category.points}pts
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Category Name */}
+                  <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-transparent group-hover:bg-gradient-to-r ${darkMode ? 'group-hover:from-purple-400 group-hover:to-pink-400' : 'group-hover:from-purple-600 group-hover:to-pink-600'} group-hover:bg-clip-text transition-all duration-300`}>
+                    {category.name}
+                  </h3>
+
+                  {/* Count Display */}
+                  <div className="flex items-end justify-between">
+                    <div className={`text-4xl font-black ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:scale-110 transition-transform duration-300`}>
+                      {category.count}
+                    </div>
+                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} text-right`}>
+                      {category.displayType === 'value' ? 'Current CGPA' :
+                       category.displayType === 'summary' ? 'Total Score' : 'Achievements'}
+                    </div>
+                  </div>
+
+                  {/* Progress Indicator */}
+                  {!isSpecial && category.displayType !== 'value' && (
+                    <div className="mt-4">
+                      <div className={`w-full h-2 rounded-full ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                        <div 
+                          className={`h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000 ease-out`}
+                          style={{ 
+                            width: `${Math.min((category.points / Math.max(...eventCategories.filter(c => c.displayType !== 'value' && c.displayType !== 'summary').map(c => c.points), 1)) * 100, 100)}%`,
+                            animationDelay: `${index * 100 + 500}ms`
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Completely Redesigned Detailed Breakdown - Timeline Style */}
+      <section className="relative py-24 px-8 overflow-hidden pt-8">
+        {/* Glassmorphism background container */}
+        <div className={`absolute inset-4 rounded-3xl backdrop-blur-md border shadow-2xl ${
+          darkMode 
+            ? 'bg-white/[0.02] border-white/5 shadow-black/20' 
+            : 'bg-black/[0.02] border-black/5 shadow-black/10'
+        }`}></div>
+
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <h2 className={`text-5xl font-black mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Detailed Breakdown
+            </h2>
+            <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}>
+              Explore each achievement with comprehensive details and source references
+            </p>
+          </div>
+
+          {/* Timeline Layout */}
+          <div className="space-y-16">
+            {Object.entries(safePostToNo).map(([category, items], categoryIndex) =>
+              Array.isArray(items) && items.length > 0 ? (
+                <div key={category} className="relative">
+                  {/* Category Header */}
+                  <div className={`sticky top-16 z-20 rounded-2xl p-6 mb-8 ${darkMode ? 'bg-gradient-to-r from-slate-900/95 to-gray-900/95 border border-white/10' : 'bg-gradient-to-r from-white/95 to-gray-50/95 border border-black/10'} backdrop-blur-xl`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${darkMode ? 'bg-gradient-to-br from-indigo-600/30 to-purple-600/30' : 'bg-gradient-to-br from-indigo-100 to-purple-100'}`}>
+                          {React.createElement(getTypeIcon(category), {
+                            size: 24,
+                            className: `${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`,
+                          })}
+                        </div>
+                        <div>
+                          <h3 className={`text-2xl font-bold capitalize ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {category.replace("_", " ")}
+                          </h3>
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {items.length} achievements • {items.reduce((sum, item) => sum + parseInt(item?.points || 0), 0)} total points
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600`}>
+                        #{categoryIndex + 1}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Achievement Cards in Grid */}
+                  <div className="grid gap-8 md:grid-cols-2">
+                    {items.map((item, index) => (
+                      <div
+                        key={index}
+                        className={`rounded-2xl p-6 transition-all duration-500 hover:scale-105 ${
+                          darkMode 
+                            ? 'bg-gradient-to-br from-white/[0.05] to-white/[0.02] border border-white/10 hover:border-indigo-400/30' 
+                            : 'bg-gradient-to-br from-white/80 to-white/60 border border-white/20 hover:border-indigo-300/50'
+                        } backdrop-blur-xl group`}
+                        style={{
+                          animationDelay: `${index * 100}ms`,
+                          animation: 'slideInUp 0.6s ease-out forwards'
+                        }}
+                      >
+                        {/* Achievement Header */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            {item?.position && (
+                              <div className={`px-3 py-1 rounded-full text-sm font-bold text-white bg-gradient-to-r ${
+                                item.position === "1" || item.position === "Winner" ? "from-yellow-500 to-orange-500" :
+                                item.position === "2" ? "from-gray-400 to-gray-600" :
+                                item.position === "3" ? "from-orange-600 to-orange-800" :
+                                "from-indigo-500 to-purple-500"
+                              }`}>
+                                {item.position === "1" || item.position === "Winner" ? "🥇 1st" :
+                                 item.position === "2" ? "🥈 2nd" :
+                                 item.position === "3" ? "🥉 3rd" :
+                                 item.position}
+                              </div>
+                            )}
+                            {item?.type && (
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${darkMode ? 'bg-indigo-600/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                                {item.type}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Points Badge */}
+                          <div className={`flex items-center gap-2 px-3 py-1 rounded-xl ${
+                            item?.why?.toLowerCase().includes("deducted") 
+                              ? 'bg-red-500/20 border border-red-500/30' 
+                              : 'bg-green-500/20 border border-green-500/30'
+                          }`}>
+                            <Trophy size={14} className={`${
+                              item?.why?.toLowerCase().includes("deducted") ? 'text-red-400' : 'text-green-400'
+                            }`} />
+                            <span className={`font-bold ${
+                              item?.why?.toLowerCase().includes("deducted") ? 'text-red-400' : 'text-green-400'
+                            }`}>
+                              {item?.points || 0}pts
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Metadata */}
+                        <div className={`flex items-center gap-4 text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            <span>
+                              {Array.isArray(item?.timestamp) ? item.timestamp.join(", ") : item?.timestamp || "No date"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span>❤️ {item?.reaction || 0}</span>
+                            <span>💬 {item?.comments || 0}</span>
+                          </div>
+                        </div>
+
+                        {/* Reason */}
+                        <div className={`p-3 rounded-lg ${darkMode ? 'bg-white/5' : 'bg-black/5'} mb-4`}>
+                          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {item?.why || "Achievement points awarded"}
+                          </p>
+                        </div>
+
+                        {/* Source Posts Preview */}
+                        {item?.source_post_excerpt?.length > 0 && (
+                          <div className="space-y-3">
+                            <h5 className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              <BookOpen size={14} />
+                              Source Posts ({item.source_post_excerpt.length})
+                            </h5>
+                            {item.source_post_excerpt.slice(0, 2).map((excerpt, excerptIndex) => (
+                              <div
+                                key={excerptIndex}
+                                className={`p-3 rounded-lg border transition-all hover:scale-[1.02] ${
+                                  darkMode 
+                                    ? 'bg-white/[0.02] border-white/5 hover:border-purple-400/20' 
+                                    : 'bg-white/60 border-white/10 hover:border-purple-300/30'
+                                } backdrop-blur-sm`}
+                              >
+                                <p className={`text-xs mb-2 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {excerpt.length > 100 ? excerpt.substring(0, 100) + "..." : excerpt}
+                                </p>
+                                {item?.source_post_index?.[excerptIndex] !== undefined && (
+                                  <button
+                                    onClick={() => {
+                                      const postIndex = item.source_post_index[excerptIndex];
+                                      const postElement = document.querySelector(`[data-post-index="${postIndex}"]`);
+                                      if (postElement) {
+                                        postElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                                        postElement.classList.add("highlight-post");
+                                        setTimeout(() => postElement.classList.remove("highlight-post"), 3000);
+                                      }
+                                    }}
+                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all hover:scale-105 ${
+                                      darkMode 
+                                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' 
+                                        : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white'
+                                    }`}
+                                  >
+                                    <ExternalLink size={10} />
+                                    View
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            {item.source_post_excerpt.length > 2 && (
+                              <div className={`text-center p-2 rounded-lg ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
+                                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  +{item.source_post_excerpt.length - 2} more posts
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            )}
+          </div>
         </div>
       </section>
 
@@ -923,7 +1141,16 @@ const Me = () => {
           display: none;             /* Chrome, Safari */
         }
 
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+
       `}</style>
+      </div>
     </div>
   );
 };

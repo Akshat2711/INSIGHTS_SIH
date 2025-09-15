@@ -5,8 +5,10 @@ import { auth, db } from "../firebase/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import Particles from '../components/Particles';
+import BlurText from '../components/BlurText';
 
-export default function SignupCard() {
+function SignupCard() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [linkedinId, setLinkedinId] = useState("");
@@ -16,7 +18,7 @@ export default function SignupCard() {
   const navigate = useNavigate();
 
   //apply theme on the current page load
-  const mode= localStorage.getItem("insight_theme") === "dark"?document.body.style.backgroundColor = "rgb(0, 0, 0)": document.body.style.backgroundColor = "rgb(207, 207, 207)";
+  const mode = localStorage.getItem("insight_theme") === "dark" ? document.body.style.backgroundColor = "rgb(0, 0, 0)" : document.body.style.backgroundColor = "rgb(207, 207, 207)";
 
   // Theme detection
   const darkMode = localStorage.getItem("insight_theme") === "dark";
@@ -80,7 +82,7 @@ export default function SignupCard() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
+        `http://127.0.0.1:8080/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -91,7 +93,7 @@ export default function SignupCard() {
         
         //getting new info stored in backend
         try {
-          const response = await fetch(`http://127.0.0.1:5000/senduserinfo?userid=${linkedinId}`);
+          const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${linkedinId}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -124,122 +126,251 @@ export default function SignupCard() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black bg-cover bg-center px-6 py-12">
-  <motion.div
-    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ type: "spring", stiffness: 200, damping: 20 }}
-    className="w-full max-w-md"
-  >
-    <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800 rounded-2xl p-8 shadow-[0_0_25px_rgba(0,255,255,0.15)]">
-      {/* Header */}
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold font-[Inter] text-cyan-400">
-          Create Account
-        </h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Join us by filling in your details below.
-        </p>
-      </header>
-
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Full Name */}
-        <input
-          className="w-full border border-zinc-700 bg-zinc-800/50 rounded-2xl px-4 py-3 text-cyan-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-400 transition"
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
+      {/* Enhanced Particles Background - positioned absolutely behind everything */}
+      <div className="absolute inset-0 w-full h-full">
+        <Particles
+          particleColors={['#ffffff', '#ffffff', '#ffffff']}
+          particleCount={400}
+          particleSpread={15}
+          speed={0.1}
+          particleBaseSize={180}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          particleHoverFactor={0.5}
+          sizeRandomness={0.6}
+          cameraDistance={20}
         />
-
-        {/* LinkedIn ID */}
-        <label className="block relative group">
-          <input
-            className="w-full border border-zinc-700 bg-zinc-800/50 rounded-2xl px-4 py-3 text-cyan-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-            type="text"
-            placeholder="LinkedIn ID"
-            value={linkedinId}
-            onChange={(e) => setLinkedinId(e.target.value)}
-            required
-          />
-          <span className="absolute left-0 -top-8 bg-zinc-950 text-cyan-100 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg shadow-cyan-500/20">
-            Eg. https://www.linkedin.com/in/akshat-srivastava-5a52b1240/
-          </span>
-        </label>
-
-        {/* Email */}
-        <input
-          className="w-full border border-zinc-700 bg-zinc-800/50 rounded-2xl px-4 py-3 text-cyan-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        {/* Password */}
-        <label className="block relative">
-          <input
-            className="w-full border border-zinc-700 bg-zinc-800/50 rounded-2xl px-4 py-3 pr-12 text-cyan-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-magenta-400 transition"
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </label>
-
-        {/* Submit */}
-        <motion.button
-          whileHover={{ scale: 1.03, boxShadow: "0 0 15px rgba(0,255,255,0.6)" }}
-          whileTap={{ scale: 0.97 }}
-          type="submit"
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-cyan-400 px-4 py-3 font-medium text-cyan-100 bg-gradient-to-r from-cyan-500/20 to-violet-500/20 hover:from-cyan-500/30 hover:to-violet-500/30 transition"
-        >
-          {loading ? (
-            <svg
-              className="h-5 w-5 animate-spin text-cyan-400"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeDasharray="60"
-                strokeLinecap="round"
-              />
-            </svg>
-          ) : (
-            "Sign Up"
-          )}
-        </motion.button>
-      </form>
-
-      {/* Login link */}
-      <div className="mt-6 text-center text-sm">
-        <span className="text-zinc-500">Already have an account?</span>
-        <a
-          href="/login"
-          className="ml-2 text-cyan-400 border-b border-cyan-400 hover:no-underline"
-        >
-          Sign in
-        </a>
       </div>
+
+      {/* Main signup card - positioned relative to stay above particles */}
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20,
+          duration: 0.6 
+        }}
+        className="relative z-10 w-full max-w-md mx-4"
+      >
+        {/* Glassmorphism card */}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/20 rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-500">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-center mb-8"
+          >
+            <BlurText
+              text="Join the Journey"
+              delay={150}
+              animateBy="words"
+              direction="top"
+              className="text-4xl font-bold text-white mb-3 text-center w-full"
+            />
+            <BlurText
+              text="Create your account to get started"
+              delay={100}
+              animateBy="words"
+              direction="top"
+              className="text-gray-200 text-lg text-center w-full"
+            />
+          </motion.div>
+
+          {/* Form */}
+          <motion.form 
+            onSubmit={handleSubmit} 
+            className="space-y-6"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0 }}
+          >
+            {/* Full Name Field */}
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-200">
+                Full Name
+              </label>
+              <motion.div
+                whileFocus={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm hover:bg-white/15"
+                  placeholder="Enter your full name"
+                />
+              </motion.div>
+            </div>
+
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-200">
+                Email Address
+              </label>
+              <motion.div
+                whileFocus={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm hover:bg-white/15"
+                  placeholder="Enter your email"
+                />
+              </motion.div>
+            </div>
+
+            {/* LinkedIn ID Field */}
+            <div className="space-y-2">
+              <label htmlFor="linkedinId" className="block text-sm font-medium text-gray-200">
+                LinkedIn ID
+              </label>
+              <motion.div
+                whileFocus={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
+                <input
+                  id="linkedinId"
+                  name="linkedinId"
+                  type="text"
+                  required
+                  value={linkedinId}
+                  onChange={(e) => setLinkedinId(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm hover:bg-white/15"
+                  placeholder="Enter your LinkedIn ID"
+                />
+              </motion.div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-200">
+                Password
+              </label>
+              <motion.div 
+                className="relative"
+                whileFocus={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              >
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-4 pr-12 bg-white/10 border border-white/30 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all duration-300 backdrop-blur-sm hover:bg-white/15"
+                  placeholder="Create a password"
+                />
+                <motion.button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-300 hover:text-white transition-colors duration-200"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </motion.button>
+              </motion.div>
+            </div>
+
+            {/* Sign Up Button */}
+            <motion.button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
+              whileHover={{ 
+                scale: 1.02, 
+                boxShadow: "0 20px 25px -5px rgba(147, 51, 234, 0.1), 0 10px 10px -5px rgba(147, 51, 234, 0.04)" 
+              }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+            >
+              {loading ? (
+                <div className="flex items-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3"
+                  />
+                  Creating account...
+                </div>
+              ) : (
+                <span className="flex items-center">
+                  Create Account
+                  <motion.svg
+                    className="ml-2 -mr-1 w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    initial={{ x: 0 }}
+                    whileHover={{ x: 5 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </motion.svg>
+                </span>
+              )}
+            </motion.button>
+          </motion.form>
+
+          {/* Sign In Link */}
+          <motion.div 
+            className="mt-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            <p className="text-gray-200">
+              Already have an account?{' '}
+              <motion.a
+                href="/login"
+                className="font-medium text-purple-400 hover:text-pink-400 transition-colors duration-200 underline decoration-purple-400/30 hover:decoration-pink-400/50 underline-offset-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Sign in
+              </motion.a>
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Legal Text */}
+        <motion.div 
+          className="mt-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+        >
+          <p className="text-xs text-gray-300">
+            By creating an account you agree to our terms and privacy policy.
+          </p>
+        </motion.div>
+      </motion.div>
     </div>
-  </motion.div>
-</div>
   );
 }
+
+export default SignupCard;
