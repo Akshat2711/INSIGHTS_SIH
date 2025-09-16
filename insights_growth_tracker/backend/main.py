@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query,UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -9,6 +9,7 @@ import threading
 import concurrent.futures
 import os
 import uvicorn
+import requests
 
 from utils.post_to_numbers import run_scoring_pipeline_firestore
 from utils.Firestore_db import FirestoreUserManager
@@ -330,6 +331,87 @@ async def search_users_by_keyword(keyword: str, limit: int = 5):
     except Exception as e:
         logger.error(f"API error searching for keyword '{keyword}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+#to handle github requests
+@app.post("/refresh-github-data")
+async def refresh_github_data(github_id: str, userid: str):  # Add userid parameter
+    try:
+        # Fetch GitHub user profile
+        profile_response = requests.get(f"https://insights-sih.fly.dev/aryabytes/api/services/v1/github/user/{github_id}")
+        if profile_response.status_code != 200:
+            return {"success": False, "error": "GitHub user not found"}
+        
+        # Fetch GitHub repositories
+        repos_response = requests.get(f"https://insights-sih.fly.dev/aryabytes/api/services/v1/github/user/{github_id}/repos")
+        if repos_response.status_code != 200:
+            return {"success": False, "error": "Failed to fetch repositories"}
+        
+        profile_data = profile_response.json()
+        repos_data = repos_response.json()
+        
+        # Combine the data
+        github_data = {
+            "github_username": github_id,  # Store the GitHub username
+            "profile": profile_data.get("data", {}),
+            "repositories": repos_data.get("data", [])
+        }
+        
+        # Save to Firestore using LinkedIn user ID
+        user_manager = FirestoreUserManager(db)  # Your existing db instance
+        success = user_manager.save_github_data(userid, github_data)  # Use userid (LinkedIn ID)
+        
+        if success:
+            return {"success": True, "message": "GitHub data saved successfully"}
+        else:
+            return {"success": False, "error": "Failed to save GitHub data"}
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+
+#to handle resume upload
+@app.post("/upload-resume")
+async def upload_resume(resume: UploadFile = File(...), userid: str = Form(...)):
+    try:
+        # Validate file type
+        if not resume.filename.endswith('.pdf'):
+            return {"success": False, "error": "Only PDF files are allowed"}
+        
+        # Prepare file for API call
+        files = {'resume': (resume.filename, resume.file, 'application/pdf')}
+        
+        # Call the resume analysis API
+        response = requests.post(
+            'https://insights-sih.fly.dev/aryabytes/api/services/v1/resume/analyze',
+            files=files
+        )
+        
+        if response.status_code != 200:
+            return {"success": False, "error": "Failed to analyze resume"}
+        
+        resume_data = response.json()
+        
+        # Save to Firestore using LinkedIn user ID
+        user_manager = FirestoreUserManager(db)
+        success = user_manager.save_resume_data(userid, resume_data)
+        
+        if success:
+            return {"success": True, "message": "Resume analyzed and saved successfully"}
+        else:
+            return {"success": False, "error": "Failed to save resume data"}
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+
+
+
 
 
 
