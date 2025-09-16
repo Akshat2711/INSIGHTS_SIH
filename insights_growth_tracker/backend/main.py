@@ -12,6 +12,7 @@ import uvicorn
 
 from utils.post_to_numbers import run_scoring_pipeline_firestore
 from utils.Firestore_db import FirestoreUserManager
+from utils.score_updater import update_scores_for_role_changes, run_async
 
 import logging
 import firebase_admin
@@ -184,6 +185,9 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
         logger.error(f"Scraping invocation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
 @app.get('/getleaderboard')
 async def get_leaderboard():
     """Get users ranked by total points - useful for leaderboard displays."""
@@ -208,6 +212,11 @@ async def get_leaderboard():
         return {"leaderboard": leaderboard}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
 
 # Route to update no. after role added/updated by user
 @app.post('/update_points')
@@ -235,15 +244,16 @@ async def update_marks_for_role(request_data: UpdatePointsRequest):
             print("Failed to update roles")
             raise HTTPException(status_code=500, detail="Failed to update roles")
         
-        print("Roles updated successfully, running scoring pipeline...")
-        # Re-run scoring with updated roles
-        scored_data = run_async(run_scoring_pipeline_firestore(
+        print("Roles updated successfully, recalculating scores...")
+        # Use the efficient score update function instead of full pipeline
+        scored_data = run_async(update_scores_for_role_changes(
             username=username,
+            updated_roles=role_data,
             scoring_matrix_file=os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
             firestore_manager=firestore_manager
         ))
         
-        print("Scoring completed successfully")
+        print("Score update completed successfully")
         return {
             "message": "Points updated successfully",
             "scored_data": scored_data
@@ -256,7 +266,14 @@ async def update_marks_for_role(request_data: UpdatePointsRequest):
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
+
+
+
+
+
+
 
 #searching endpoint
 @app.get('/search-users-by-keyword')
