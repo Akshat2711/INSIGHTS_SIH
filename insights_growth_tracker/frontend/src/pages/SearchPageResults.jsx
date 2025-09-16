@@ -20,7 +20,7 @@ useEffect(() => {
         throw new Error("No userid found in URL");
       }
 
-      const response = await fetch(`http://127.0.0.1:5000/senduserinfo?userid=${userid}`);
+      const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${userid}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
       }

@@ -4,6 +4,7 @@ import { Trophy, TrendingUp, Users, Award, Calendar, Target, Activity, Star, Zap
 import { DataProcessor } from '../utils/DataProcessor';
 import { MetricCard } from '../components/MetricCard';
 import { TimelineTooltip, RadarTooltip, PieTooltip } from '../components/Tooltips';
+import Particles from '../components/Particles';
 
 // Custom hook for localStorage data
 const useLocalStorageData = () => {
@@ -83,44 +84,38 @@ const ChartContainer = ({ title, children, className = "", description, info }) 
     typeof window !== "undefined" &&
     localStorage.getItem("insight_theme") === "dark";
 
-  // Neon accent palette
-  const accent = isDark ? "text-cyan-400" : "text-cyan-600";
-  const border = isDark ? "border-cyan-500/30" : "border-gray-300";
-  const bg = isDark ? "bg-gray-950" : "bg-white";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-300" : "text-gray-600";
-  const infoBg = "bg-gray-900 text-white"; // keep tooltip consistent across themes
-
   return (
     <div
-      className={`
-        ${bg} ${border} 
-        border rounded-2xl p-6 
-        shadow-md hover:shadow-xl hover:shadow-cyan-500/20 
-        transition-all duration-300 ease-out
-        ${className}
-      `}
+      className={`rounded-3xl backdrop-blur-2xl border transition-all duration-300 hover:scale-[1.01] p-6 ${
+        isDark 
+          ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10 hover:border-purple-400/20' 
+          : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20 hover:border-purple-300/30'
+      } shadow-lg ${className}`}
       style={{ fontFamily: "Inter, Roboto, sans-serif" }}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className={`text-xl font-semibold tracking-tight ${textPrimary}`}>
+          <h3 className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {title}
           </h3>
           {description && (
-            <p className={`text-sm mt-1 ${textSecondary}`}>{description}</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{description}</p>
           )}
         </div>
         {info && (
           <div className="group relative">
             <Info
-              className={`w-5 h-5 cursor-help transition-colors ${accent}`}
+              className={`w-5 h-5 cursor-help transition-colors ${isDark ? 'text-purple-400' : 'text-purple-600'}`}
             />
             <div
               className={`
-                absolute right-0 top-6 w-64 p-3 ${infoBg} 
-                text-xs rounded-2xl shadow-lg shadow-cyan-500/20
+                absolute right-0 top-6 w-64 p-3 ${
+                  isDark ? 'bg-black text-white' : 'bg-white text-gray-900'
+                } 
+                text-xs rounded-2xl shadow-lg border ${
+                  isDark ? 'border-white/10' : 'border-gray-200'
+                }
                 opacity-0 group-hover:opacity-100 
                 transition-opacity duration-300 z-20
               `}
@@ -173,16 +168,16 @@ const SuggestionTab = () => {
   // apply theme on the current page load
   const darkMode = (typeof window !== 'undefined' && localStorage.getItem("insight_theme") === "dark");
   useEffect(() => {
-    document.body.style.backgroundColor = darkMode ? "#0d0d0d" : "#f8fafc";
+    document.body.style.backgroundColor = darkMode ? "rgb(0, 0, 0)" : "rgb(207, 207, 207)";
   }, [darkMode]);
   
   // common theme classes
-  const containerBg = darkMode ? 'bg-[#0d0d0d] text-gray-100' : 'bg-white text-gray-900';
-  const cardBg = darkMode ? 'bg-[#1a1a1a]' : 'bg-white';
+  const containerBg = darkMode ? 'bg-black text-gray-100' : 'bg-white text-gray-900';
+  const cardBg = darkMode ? 'bg-black' : 'bg-white';
   const borderClass = darkMode ? 'border-gray-800' : 'border-gray-200';
   const mutedText = darkMode ? 'text-gray-400' : 'text-gray-600';
   const headerGradient = darkMode ? 'bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500' : 'bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600';
-  const tableHeaderBg = darkMode ? 'bg-[#1a1a1a]' : 'bg-gray-50';
+  const tableHeaderBg = darkMode ? 'bg-black' : 'bg-gray-50';
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={refetch} />;
@@ -203,48 +198,101 @@ const SuggestionTab = () => {
   const avgEngagement = engagementData.length > 0 ? (totalEngagement / engagementData.length).toFixed(0) : 0;
 
   return (
-  <div className={`max-w-7xl mx-auto p-6 space-y-12 min-h-screen mt-10 ${containerBg} font-['Roboto']`}>
-     {/* Enhanced Header */}
-     <div className="text-center space-y-6 py-10">
-       <div className="flex justify-center items-center space-x-4 mb-6">
-         <div
-           className={`px-4 py-2 rounded-2xl text-sm font-semibold shadow-lg
-             ${
-               overallScore.grade === 'A+'
-                 ? 'bg-green-500/20 text-green-300'
-                 : overallScore.grade.startsWith('A')
-                 ? 'bg-cyan-500/20 text-cyan-300'
-                 : 'bg-yellow-500/20 text-yellow-300'
-             }`}
-         >
-           Grade: {overallScore.grade}
-         </div>
-         <div className="px-4 py-2 rounded-2xl text-sm font-semibold bg-purple-500/20 text-purple-300 shadow-lg">
-           {overallScore.percentage}% Complete
-         </div>
-       </div>
-       <h1 className="text-5xl font-bold bg-clip-text text-transparent tracking-tight">
-         <span className={headerGradient + " bg-clip-text text-transparent"}>Smart Analytics</span>
-       </h1>
-       <p className="text-lg text-gray-400">
-         Performance insights for{' '}
-         <span className="font-semibold text-cyan-400">{userId || 'User'}</span>
-       </p>
-       <div className="flex justify-center space-x-8 text-sm text-gray-400">
-         <span className="flex items-center hover:text-cyan-300 transition">
-           <Trophy className="w-4 h-4 mr-1 text-cyan-400" />
-           {overallScore.totalPoints} Total Points
-         </span>
-         <span className="flex items-center hover:text-green-300 transition">
-           <Activity className="w-4 h-4 mr-1 text-green-400" />
-           {totalMetrics} Achievements
-         </span>
-         <span className="flex items-center hover:text-pink-300 transition">
-           <Users className="w-4 h-4 mr-1 text-pink-400" />
-           {totalEngagement} Total Engagement
-         </span>
-       </div>
-     </div>
+  <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
+      {/* Fixed Particles Background - covering entire page */}
+      <div className="fixed inset-0 w-full h-full z-0">
+        <Particles
+          particleColors={['#ffffff', '#ffffff', '#ffffff']}
+          particleCount={300}
+          particleSpread={15}
+          speed={0.1}
+          particleBaseSize={150}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          particleHoverFactor={0.5}
+          sizeRandomness={0.8}
+          cameraDistance={25}
+        />
+      </div>
+    
+    {/* Main Content */}
+    <div className="relative z-10 pt-20 pb-16">
+      <div className={`max-w-7xl mx-auto p-6 space-y-12 ${containerBg} font-['Roboto']`}>
+      {/* Enhanced Header */}
+      <section className="px-8 mb-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-4 mb-6">
+              <div className={`p-4 rounded-3xl ${
+                darkMode 
+                  ? 'bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30' 
+                  : 'bg-gradient-to-r from-cyan-100 to-purple-100 border border-cyan-200'
+              } backdrop-blur-xl`}>
+                <Brain className={`${darkMode ? "text-cyan-400" : "text-cyan-600"}`} size={36} />
+              </div>
+            </div>
+            <h1 className={`text-6xl font-black mb-6 ${
+              darkMode 
+                ? 'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400' 
+                : 'bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600'
+            } bg-clip-text text-transparent`}>
+              Analytics
+            </h1>
+            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto mb-6`}>
+              Performance insights for{' '}
+              <span className={`font-semibold ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>{userId || 'User'}</span>
+            </p>
+            <div className={`w-32 h-1 mx-auto mt-6 ${
+              darkMode 
+                ? 'bg-gradient-to-r from-cyan-400 to-purple-400' 
+                : 'bg-gradient-to-r from-cyan-600 to-purple-600'
+            } rounded-full mb-8`}></div>
+            
+            {/* Grade and Stats */}
+            <div className="flex justify-center items-center space-x-4 mb-6">
+              <div
+                className={`px-4 py-2 rounded-2xl text-sm font-semibold shadow-lg
+                  ${
+                    overallScore.grade === 'A+'
+                      ? (darkMode ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700')
+                      : overallScore.grade.startsWith('A')
+                      ? (darkMode ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700')
+                      : (darkMode ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700')
+                  }`}
+              >
+                Grade: {overallScore.grade}
+              </div>
+              <div className={`px-4 py-2 rounded-2xl text-sm font-semibold shadow-lg ${
+                darkMode ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'
+              }`}>
+                {overallScore.percentage}% Complete
+              </div>
+            </div>
+            
+            <div className="flex justify-center space-x-8 text-sm">
+              <span className={`flex items-center transition-colors ${
+                darkMode ? 'text-gray-400 hover:text-cyan-300' : 'text-gray-600 hover:text-cyan-700'
+              }`}>
+                <Trophy className={`w-4 h-4 mr-1 ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                {overallScore.totalPoints} Total Points
+              </span>
+              <span className={`flex items-center transition-colors ${
+                darkMode ? 'text-gray-400 hover:text-green-300' : 'text-gray-600 hover:text-green-700'
+              }`}>
+                <Activity className={`w-4 h-4 mr-1 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                {totalMetrics} Achievements
+              </span>
+              <span className={`flex items-center transition-colors ${
+                darkMode ? 'text-gray-400 hover:text-pink-300' : 'text-gray-600 hover:text-pink-700'
+              }`}>
+                <Users className={`w-4 h-4 mr-1 ${darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
+                {totalEngagement} Total Engagement
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
 
     {/* Metrics Grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -287,10 +335,14 @@ const SuggestionTab = () => {
       {metricsOverview.map((metric, index) => (
         <div
           key={index}
-          className={`border ${borderClass} rounded-2xl p-5 ${cardBg} shadow-lg hover:shadow-cyan-500/20 transition`}
+          className={`rounded-3xl backdrop-blur-2xl border transition-all duration-300 hover:scale-[1.02] p-5 ${
+            darkMode 
+              ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10 hover:border-cyan-400/20' 
+              : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20 hover:border-cyan-300/30'
+          } shadow-lg`}
         >
            <div className="flex items-center justify-between mb-3">
-             <h4 className="font-semibold text-gray-100">{metric.metric}</h4>
+             <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{metric.metric}</h4>
              <div
                className="w-3 h-3 rounded-full"
                style={{ backgroundColor: metric.color }}
@@ -298,18 +350,18 @@ const SuggestionTab = () => {
            </div>
            <div className="grid grid-cols-3 gap-2 text-sm">
              <div>
-               <p className="text-gray-400">Points</p>
-               <p className="font-bold text-lg text-cyan-300">
+               <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Points</p>
+               <p className={`font-bold text-lg ${darkMode ? 'text-cyan-300' : 'text-cyan-600'}`}>
                  {metric.totalPoints}
                </p>
              </div>
              <div>
-               <p className="text-gray-400">Count</p>
-               <p className="font-bold text-lg text-green-300">{metric.count}</p>
+               <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Count</p>
+               <p className={`font-bold text-lg ${darkMode ? 'text-green-300' : 'text-green-600'}`}>{metric.count}</p>
              </div>
              <div>
-               <p className="text-gray-400">Avg</p>
-               <p className="font-bold text-lg text-pink-300">
+               <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Avg</p>
+               <p className={`font-bold text-lg ${darkMode ? 'text-pink-300' : 'text-pink-600'}`}>
                  {metric.avgPoints}
                </p>
              </div>
@@ -446,7 +498,7 @@ const SuggestionTab = () => {
     </thead>
     <tbody className="divide-y divide-gray-700">
       {detailedMetrics.map((metric, index) => (
-        <tr key={metric.id} className={darkMode ? "hover:bg-[#222]" : "hover:bg-gray-50"}>
+        <tr key={metric.id} className={darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}>
           <td className="px-4 py-3">
             <div className="flex items-center">
               <div 
@@ -643,7 +695,9 @@ const SuggestionTab = () => {
         Data loaded from localStorage • Last updated when you logged in
       </p>
     </div>
-   </div>
+      </div>
+    </div>
+  </div>
  );
  
  };

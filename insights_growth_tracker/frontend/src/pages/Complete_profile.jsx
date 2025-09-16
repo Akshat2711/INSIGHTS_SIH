@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Trophy, Calendar, MessageSquare, Heart, Award, Save, ArrowLeft,Loader } from 'lucide-react';
+import Particles from '../components/Particles';
 
 const CompleteProfile = () => {
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
@@ -115,8 +116,6 @@ const CompleteProfile = () => {
     return achievements;
   };
 
-
-
   const handleNext = () => {
     // Save current response to state
     if (currentResponse.trim()) {
@@ -142,73 +141,63 @@ const CompleteProfile = () => {
     }
   };
 
-  
-
-
-
-
-const saveAllResponses = async () => {
-  setLoading(true);
-  
-  try {
-    // Include current response if not saved yet
-    const finalResponses = {
-      ...userResponses
-    };
+  const saveAllResponses = async () => {
+    setLoading(true);
     
-    if (currentResponse.trim()) {
-      finalResponses[currentPostIndex] = currentResponse.trim();
-    }
-
-    // Create response object with post_id as keys
-    const roleData = {};
-    posts.forEach((post, index) => {
-      if (finalResponses[index] && post.post_id) {
-        roleData[post.post_id] = finalResponses[index];
-      }
-    });
-
-    // Save locally first
-    localStorage.setItem('insight_user_post_responses', JSON.stringify(roleData));
-    
-    // Update backend
-    const username = localStorage.getItem("linkedin_id");
-    const response = await fetch('http://127.0.0.1:5000/update_points', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: username,
-        roles: roleData
-      })
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      console.log('Points updated successfully:', result);
+    try {
+      // Include current response if not saved yet
+      const finalResponses = {
+        ...userResponses
+      };
       
-      // Update local state immediately
-      if (result.total_points) {
-        setTotalPoints(result.total_points);
+      if (currentResponse.trim()) {
+        finalResponses[currentPostIndex] = currentResponse.trim();
+      }
+
+      // Create response object with post_id as keys
+      const roleData = {};
+      posts.forEach((post, index) => {
+        if (finalResponses[index] && post.post_id) {
+          roleData[post.post_id] = finalResponses[index];
+        }
+      });
+
+      // Save locally first
+      localStorage.setItem('insight_user_post_responses', JSON.stringify(roleData));
+      
+      // Update backend
+      const username = localStorage.getItem("linkedin_id");
+      const response = await fetch('http://127.0.0.1:8080/update_points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username,
+          roles: roleData
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Points updated successfully:', result);
+        
+        // Update local state immediately
+        if (result.total_points) {
+          setTotalPoints(result.total_points);
+        }
+        
+        alert(`Points updated successfully! New total: ${result.total_points || 'calculating...'} points`);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update points');
       }
       
-      alert(`Points updated successfully! New total: ${result.total_points || 'calculating...'} points`);
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to update points');
+    } catch (error) {
+      console.error('Error updating points:', error);
+      alert(`Failed to update points: ${error.message}. Please try again.`);
+    } finally {
+      setLoading(false);
     }
-    
-  } catch (error) {
-    console.error('Error updating points:', error);
-    alert(`Failed to update points: ${error.message}. Please try again.`);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
-
+  };
 
   const handleSaveAndReturn = () => {
     // Save current response to state first
@@ -220,7 +209,7 @@ const saveAllResponses = async () => {
       updatedResponses[currentPostIndex] = currentResponse.trim();
     }
     
-    // Create response object with image URLs as keys
+    // Create response object with post_id as keys
     const responseObject = {};
     posts.forEach((post, index) => {
       if (updatedResponses[index] && post.post_id) {
@@ -231,15 +220,29 @@ const saveAllResponses = async () => {
     // Save to localStorage
     localStorage.setItem('insight_user_post_responses', JSON.stringify(responseObject));
     window.location.href = '/settings';
-    
-    
-   
   };
 
   if (posts.length === 0) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+        {/* Enhanced Particles Background */}
+        <div className="fixed inset-0 w-full h-full z-0">
+          <Particles
+            particleColors={['#ffffff', '#ffffff', '#ffffff']}
+            particleCount={400}
+            particleSpread={15}
+            speed={0.1}
+            particleBaseSize={180}
+            moveParticlesOnHover={true}
+            alphaParticles={false}
+            disableRotation={false}
+            particleHoverFactor={0.5}
+            sizeRandomness={0.6}
+            cameraDistance={20}
+          />
+        </div>
+        
+        <div className="relative z-10 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
           <p className="text-gray-400 mb-2">Loading your achievements...</p>
           <p className="text-gray-500 text-sm">
@@ -268,10 +271,27 @@ const saveAllResponses = async () => {
 
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-black text-white p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-black text-white p-6 relative overflow-hidden">
+        {/* Enhanced Particles Background */}
+        <div className="fixed inset-0 w-full h-full z-0">
+          <Particles
+            particleColors={['#ffffff', '#ffffff', '#ffffff']}
+            particleCount={400}
+            particleSpread={15}
+            speed={0.1}
+            particleBaseSize={180}
+            moveParticlesOnHover={true}
+            alphaParticles={false}
+            disableRotation={false}
+            particleHoverFactor={0.5}
+            sizeRandomness={0.6}
+            cameraDistance={20}
+          />
+        </div>
+        
+        <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center py-12">
-            <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-8 mb-8 mt-10">
+            <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-gray-700/50 p-8 mb-8 mt-10">
               <h2 className="text-2xl font-bold text-white mb-4">Summary</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="text-center">
@@ -316,9 +336,27 @@ const saveAllResponses = async () => {
   const postAchievements = getPostAchievements(currentPostIndex);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Enhanced Particles Background */}
+      <div className="fixed inset-0 w-full h-full z-0">
+        <Particles
+          particleColors={['#ffffff', '#ffffff', '#ffffff']}
+          particleCount={400}
+          particleSpread={15}
+          speed={0.1}
+          particleBaseSize={180}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          particleHoverFactor={0.5}
+          sizeRandomness={0.6}
+          cameraDistance={20}
+        />
+      </div>
+      
+
       {/* Header */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700/50 px-6 py-4">
+      <div className="bg-white/[0.02] backdrop-blur-sm border-b border-gray-700/50 px-6 py-4 relative z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center mt-20">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -345,7 +383,7 @@ const saveAllResponses = async () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 relative z-10">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Post Display */}
           <div className="space-y-6">
@@ -358,7 +396,7 @@ const saveAllResponses = async () => {
             </div>
 
             {/* Post Card */}
-            <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden">
+            <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden">
               {/* Post Images */}
               {currentPost.images && currentPost.images.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 p-4">
@@ -457,7 +495,7 @@ const saveAllResponses = async () => {
 
           {/* Response Form */}
           <div className="space-y-6">
-            <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
+            <div className="bg-white/[0.02] backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6">
               <h2 className="text-xl font-bold text-white mb-4">
                 Tell Us About This Post
               </h2>

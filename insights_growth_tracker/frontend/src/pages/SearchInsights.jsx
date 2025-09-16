@@ -33,7 +33,7 @@ export default function SearchInsights() {
 
     try {
       const encoded = encodeURIComponent(query);
-      const endpoint = `http://127.0.0.1:5000/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
+      const endpoint = `http://127.0.0.1:8080/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
 
       const resp = await fetch(endpoint);
       if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
