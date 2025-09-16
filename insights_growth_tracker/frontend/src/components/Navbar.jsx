@@ -42,17 +42,17 @@ const Navbar = () => {
   return (
     <>
       {/* Modern Glassmorphism Navbar */}
-      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+      <nav className={`fixed top-8 left-1/2 transform -translate-x-1/2 max-w-5xl rounded-3xl shadow-2xl z-50 transition-all duration-300 ${
         scrolled 
-          ? 'py-3 backdrop-blur-xl bg-black/30 border-b border-white/10 shadow-2xl' 
-          : 'py-4 backdrop-blur-md bg-black/20 border-b border-white/5'
-      }`}>
+          ? 'py-3 backdrop-blur-md bg-black/30 border-b border-white/10' 
+          : 'py-4 backdrop-blur-sm bg-black/20 border-b border-white/5'
+      }`} style={{width: '90%'}}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between">
             
             {/* Enhanced Logo */}
             <div className="flex items-center gap-3">
-              <div className="relative group">
+              <div className="relative group" onClick={() => window.location.href = '/me'} style={{cursor: 'pointer'}}>
                 <div className={`absolute inset-0 rounded-xl blur-md transition-all duration-300 ${
                   darkMode 
                     ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 group-hover:from-purple-500/40 group-hover:to-pink-500/40' 

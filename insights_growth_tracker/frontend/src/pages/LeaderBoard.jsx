@@ -438,12 +438,9 @@ return (
         cameraDistance={25}
       />
     </div>
-    
-    {/* Main Content */}
-
 
     {/* Main Content */}
-    <div className="relative z-10 pt-20 pb-16">
+    <div className="relative z-10 pt-28 pb-16">
       {/* Hero Header Section */}
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">

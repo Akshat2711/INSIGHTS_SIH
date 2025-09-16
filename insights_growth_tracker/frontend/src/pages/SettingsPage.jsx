@@ -21,15 +21,24 @@ export default function SettingsPage() {
     linkedinId: linkedinId,
   });
 
+  // Toggle dark mode function
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("insight_theme", newDarkMode ? "dark" : "light");
+    // Update the body background color
+    document.body.style.backgroundColor = newDarkMode ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
+  };
+
   // Theme detection and update function
   const updateTheme = () => {
-    document.body.style.backgroundColor = "rgb(0, 0, 0)";
+    document.body.style.backgroundColor = darkMode ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
   };
 
   // Listen for theme changes
   useEffect(() => {
     updateTheme();
-  }, []);
+  }, [darkMode]);
 
   const handleLogout = async () => {
     try {
@@ -296,6 +305,107 @@ export default function SettingsPage() {
                           {message.text}
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Privacy & Security Section */}
+                {activeSection === 'privacy' && (
+                  <div className={`rounded-3xl p-8 backdrop-blur-xl border transition-all duration-500 ${
+                    darkMode 
+                      ? 'bg-gradient-to-br from-white/[0.08] to-white/[0.02] border-white/10' 
+                      : 'bg-gradient-to-br from-black/[0.02] to-black/[0.08] border-black/10'
+                  }`}>
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className={`p-3 rounded-xl ${
+                        darkMode 
+                          ? 'bg-gradient-to-br from-red-600/30 to-orange-600/30' 
+                          : 'bg-gradient-to-br from-red-100 to-orange-100'
+                      }`}>
+                        <Shield className={`${darkMode ? 'text-red-400' : 'text-red-600'}`} size={24} />
+                      </div>
+                      <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Privacy & Security
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div className={`p-6 rounded-xl border backdrop-blur-sm ${
+                        darkMode 
+                          ? 'bg-white/[0.03] border-white/10' 
+                          : 'bg-black/[0.02] border-black/10'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'} mb-1`}>
+                              Dark Mode
+                            </h3>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Enable dark theme for better viewing in low light
+                            </p>
+                          </div>
+                          <button
+                            onClick={toggleDarkMode}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                              darkMode ? 'bg-purple-600' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                darkMode ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className={`p-6 rounded-xl border backdrop-blur-sm ${
+                        darkMode 
+                          ? 'bg-white/[0.03] border-white/10' 
+                          : 'bg-black/[0.02] border-black/10'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'} mb-1`}>
+                              Two-Factor Authentication
+                            </h3>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Add an extra layer of security to your account
+                            </p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            darkMode 
+                              ? 'bg-red-500/20 text-red-400' 
+                              : 'bg-red-100 text-red-600'
+                          }`}>
+                            Disabled
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className={`p-6 rounded-xl border backdrop-blur-sm ${
+                        darkMode 
+                          ? 'bg-white/[0.03] border-white/10' 
+                          : 'bg-black/[0.02] border-black/10'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'} mb-1`}>
+                              Login Notifications
+                            </h3>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Get notified when your account is accessed
+                            </p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            darkMode 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : 'bg-green-100 text-green-600'
+                          }`}>
+                            Enabled
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}

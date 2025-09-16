@@ -340,8 +340,8 @@ const CompareTab = () => {
       </div>
       
       {/* Main Content */}
-      <div className="relative z-10 pt-20 pb-16">
-        <div className="space-y-6 mt-20 font-[Inter,Roboto,system-ui,sans-serif]">
+      <div className="relative z-10 pt-16 pb-16">
+        <div className="space-y-6 mt-16 font-[Inter,Roboto,system-ui,sans-serif]">
           <div className="max-w-6xl mx-auto space-y-6 px-4">
         {/* Hero Header Section */}
         <section className="px-8 mb-16">
