@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Linkedin, RefreshCw, Settings, Shield, Database, BarChart3, LogOut, Edit3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Linkedin, RefreshCw, Settings, Shield, Database, BarChart3, LogOut, Edit3, Upload, FileText } from 'lucide-react';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import Particles from '../components/Particles';
@@ -8,6 +8,9 @@ export default function SettingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [message, setMessage] = useState(null);
   const [activeSection, setActiveSection] = useState('profile');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const linkedinId = localStorage.getItem("linkedin_id") || "punit173";
   const user_name = localStorage.getItem("insight_username") || "error_user";
   const user_email = localStorage.getItem("insight_email") || "error@gmail.com";
@@ -76,6 +79,50 @@ export default function SettingsPage() {
       setMessage({ type: 'error', text: err.message });
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      setMessage({ type: 'error', text: 'Please upload a PDF file only.' });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'File size should be less than 10MB.' });
+      return;
+    }
+
+    setIsUploading(true);
+    setMessage(null);
+
+    try {
+      // Here you would typically upload to your backend
+      // For now, we'll just simulate the upload
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate upload delay
+      
+      setUploadedFile({
+        name: file.name,
+        size: file.size,
+        uploadDate: new Date().toLocaleDateString()
+      });
+      
+      setMessage({ type: 'success', text: 'Resume uploaded successfully!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to upload resume. Please try again.' });
+    } finally {
+      setIsUploading(false);
+      // Clear the input
+      event.target.value = '';
     }
   };
 
@@ -285,7 +332,50 @@ export default function SettingsPage() {
                           <Edit3 size={20} />
                           Complete Profile
                         </button>
+
+                        <button
+                          onClick={handleFileUpload}
+                          disabled={isUploading}
+                          className={`flex items-center gap-3 px-6 py-4 rounded-xl font-medium transition-all duration-300 ${
+                            isUploading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'
+                          } ${
+                            darkMode 
+                              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg hover:shadow-emerald-500/25' 
+                              : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:shadow-emerald-500/25'
+                          }`}
+                        >
+                          <Upload size={20} className={isUploading ? 'animate-pulse' : ''} />
+                          {isUploading ? 'Uploading...' : 'Upload Resume/CV'}
+                        </button>
                       </div>
+
+                      {/* Hidden file input */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+
+                      {/* Uploaded file display */}
+                      {uploadedFile && (
+                        <div className={`p-6 rounded-xl border backdrop-blur-sm ${
+                          darkMode 
+                            ? 'bg-white/[0.03] border-white/10' 
+                            : 'bg-black/[0.02] border-black/10'
+                        }`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <FileText className={`${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={20} />
+                            <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Uploaded Resume</h4>
+                          </div>
+                          <div className={`space-y-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <p><span className="font-medium">File:</span> {uploadedFile.name}</p>
+                            <p><span className="font-medium">Size:</span> {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <p><span className="font-medium">Uploaded:</span> {uploadedFile.uploadDate}</p>
+                          </div>
+                        </div>
+                      )}
                       
                       {message && (
                         <div className={`p-4 rounded-xl border ${

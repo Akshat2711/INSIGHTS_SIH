@@ -173,17 +173,17 @@ const Me = () => {
   const getTypeColor = (type) => {
     switch(type) {
       case 'hackathon': return 'bg-purple-900';
-      case 'coding_platform': return 'bg-blue-900';
-      case 'certification': return 'bg-green-900';
-      case 'internship': return 'bg-orange-900';
-      case 'leadership': return 'bg-red-900';
-      case 'project': return 'bg-indigo-900';
-      case 'inhouse_project': return 'bg-indigo-800';
+      case 'coding_platform': return 'bg-indigo-900';
+      case 'certification': return 'bg-blue-900';
+      case 'internship': return 'bg-purple-800';
+      case 'leadership': return 'bg-indigo-800';
+      case 'project': return 'bg-blue-800';
+      case 'inhouse_project': return 'bg-purple-700';
       case 'fsd_project': return 'bg-indigo-700';
-      case 'membership': return 'bg-yellow-800';
-      case 'assessment': return 'bg-teal-900';
-      case 'research_publications': return 'bg-emerald-900';
-      default: return 'bg-gray-900';
+      case 'membership': return 'bg-blue-700';
+      case 'assessment': return 'bg-purple-600';
+      case 'research_publications': return 'bg-indigo-600';
+      default: return 'bg-purple-800';
     }
   };
 

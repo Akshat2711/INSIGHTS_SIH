@@ -321,7 +321,7 @@ const CompleteProfile = () => {
 
             <button
               onClick={handleSaveAndReturn}
-              className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 transform hover:scale-105"
+              className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
             >
               <ArrowLeft className="w-5 h-5 inline mr-2" />
               Return to Settings
@@ -359,7 +359,7 @@ const CompleteProfile = () => {
       <div className="bg-white/[0.02] backdrop-blur-sm border-b border-gray-700/50 px-6 py-4 relative z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center mt-20">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
               Complete Your Profile
             </h1>
             <p className="text-gray-400">
@@ -390,7 +390,7 @@ const CompleteProfile = () => {
             {/* Progress Bar */}
             <div className="bg-gray-800 rounded-full h-2 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-cyan-400 to-purple-400 h-full transition-all duration-500"
+                className="bg-gradient-to-r from-purple-400 to-indigo-400 h-full transition-all duration-500"
                 style={{ width: `${((currentPostIndex + 1) / posts.length) * 100}%` }}
               />
             </div>
@@ -451,7 +451,7 @@ const CompleteProfile = () => {
             </div>
 
             {/* Achievement Points - Show for ALL posts */}
-            <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30 rounded-2xl p-6">
+            <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/30 rounded-2xl p-6">
               <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center">
                 <Award className="w-5 h-5 mr-2" />
                 Post Analysis
@@ -466,7 +466,7 @@ const CompleteProfile = () => {
                           {achievement.type}
                           {achievement.position && ` - ${achievement.position} Position`}
                         </span>
-                        <span className="bg-gradient-to-r from-cyan-400 to-purple-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                        <span className="bg-gradient-to-r from-purple-400 to-indigo-400 text-black px-3 py-1 rounded-full text-sm font-bold">
                           {achievement.points} pts
                         </span>
                       </div>
@@ -539,7 +539,7 @@ const CompleteProfile = () => {
 
               <button
                 onClick={handleNext}
-                className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 transform hover:scale-105 flex items-center"
+                className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 flex items-center"
               >
                 {currentPostIndex === posts.length - 1 ? 'Complete' : 'Next'}
                 <ChevronRight className="w-5 h-5 ml-2" />

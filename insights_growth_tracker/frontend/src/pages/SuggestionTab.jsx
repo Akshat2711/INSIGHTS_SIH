@@ -176,7 +176,7 @@ const SuggestionTab = () => {
   const cardBg = darkMode ? 'bg-black' : 'bg-white';
   const borderClass = darkMode ? 'border-gray-800' : 'border-gray-200';
   const mutedText = darkMode ? 'text-gray-400' : 'text-gray-600';
-  const headerGradient = darkMode ? 'bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500' : 'bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600';
+  const headerGradient = darkMode ? 'bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400' : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600';
   const tableHeaderBg = darkMode ? 'bg-black' : 'bg-gray-50';
 
   if (loading) return <LoadingSpinner />;
