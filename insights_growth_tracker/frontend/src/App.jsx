@@ -12,6 +12,9 @@ import { useAuth } from "./auth/AuthContext.jsx";
 import PrivateRoute from "./auth/PrivateRoute.jsx";
 import "./App.css";
 
+import SearchInsights from "./pages/SearchInsights.jsx";
+import SearchPageResults from "./pages/SearchPageResults.jsx";
+
 
 
 function App() {
@@ -62,6 +65,31 @@ function App() {
             </PrivateRoute>
           }
         />
+
+
+       
+
+        <Route
+          path="/search"
+          element={
+            <PrivateRoute>
+              <SearchInsights/>
+            </PrivateRoute>
+          }
+        />
+
+         <Route
+          path="/searchresults"
+          element={
+            <PrivateRoute>
+              <SearchPageResults/>
+            </PrivateRoute>
+          }
+        />
+
+
+
+
         <Route
           path="/settings"
           element={

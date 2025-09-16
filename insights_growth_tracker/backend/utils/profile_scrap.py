@@ -161,6 +161,7 @@ class LinkedInScraper:
                 post_url: a('a[href*="/posts/"], a[href*="/activity:"]')
             };
         }""")
+    
     async def scrape_profile_activity(self, profile_url: str) -> list:
         try:
             # Always ensure browser is properly initialized
@@ -178,10 +179,11 @@ class LinkedInScraper:
             print(f"-> Found {len(containers)} post containers")
 
             posts_data = []
-            for idx, container in enumerate(containers):
+            for idx, container in enumerate(containers, start=1):  # start IDs from 1
                 try:
                     post_data = await self.extract_post_data(container)
                     if post_data.get('text') or post_data.get('images'):
+                        post_data["post_id"] = f"post_{idx}"   # <-- assign unique id here
                         posts_data.append(post_data)
                 except Exception as e:
                     print(f"-> Error processing post {idx}: {e}")
@@ -193,6 +195,7 @@ class LinkedInScraper:
             # Reset initialization flag on error
             self.is_initialized = False
             return []
+
     def can_be_used_in_loop(self) -> bool:
         """Return True if this scraper was created/started in current running loop and appears initialized."""
         try:

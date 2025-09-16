@@ -5,6 +5,11 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from langchain.schema import HumanMessage
 import asyncio
+import re
+
+#importing neccessary tools
+from tools.tools_post_2_no import POST_2_NO_TOOLS
+
 
 
 class SRMPlacementScorer:
@@ -28,6 +33,11 @@ class SRMPlacementScorer:
         self.scoring_metrics = self._load_scoring_matrix(scoring_matrix_path)
         self.prompt_template = PromptTemplate.from_template(self._get_prompt_template())
 
+        #obejct to use necc tools
+        self.neccessary_tools=POST_2_NO_TOOLS(self.scoring_metrics)
+
+
+
     def _load_scoring_matrix(self, filepath: str) -> dict:
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"SRM scoring matrix file not found: {filepath}")
@@ -36,7 +46,7 @@ class SRMPlacementScorer:
                 return json.load(f)
             except json.JSONDecodeError as e:
                 raise json.JSONDecodeError(f"Failed to parse JSON from {filepath}: {e}", e.doc, e.pos)
-            
+
 
     def process_firestore(self, user_data: dict) -> dict:
         """Process user data from Firestore format."""
@@ -44,13 +54,9 @@ class SRMPlacementScorer:
             raise ValueError("No original_scrapping data found in user data")
         
         posts = user_data["original_scrapping"]
-        role_of_user = user_data.get("role_of_user", {})#roel of user stored in this key in firestore
-        scored_data = self.run_scoring(posts,role_of_user)
+        role_of_user = user_data.get("role_of_user", {})
+        scored_data = self.run_scoring(posts, role_of_user)
         return scored_data
-
-
-
-
 
     def _get_prompt_template(self) -> str:
         return """
@@ -59,10 +65,10 @@ class SRMPlacementScorer:
         ### CONTEXT
         You will be given:
         1. A list of social media posts by a student (scraped from LinkedIn). These posts contain academic milestones, contests, internships, certifications, and projects.
-        2. A mapping called `role`, where the key is the first 2 lines of the LinkedIn post text and the value is the role described by the student in that post (if any).
+        2. A mapping called `role`, where the key is post_id and the value is the role described by the student in that post (if any).
 
         Example:
-        {{"Just completed my internship at Google\nWorked on machine learning projects":"software engineer intern"}}
+        {{"post_id":"software engineer intern"}}
 
         ### YOUR TASK
         From this data, extract and return a list of structured entries according to the SRM placement scoring system. Your output must be a JSON object where data is grouped by category (e.g., "hackathon", "internship", "certification", "project", "cgpa", etc.). For each item in a group, include:
@@ -76,7 +82,7 @@ class SRMPlacementScorer:
         - `comments`: number of comments on the post
     
         ### ROLE VALIDATION RULE
-        - For each post, check if there is an entry in the `role` mapping (matched via the first 2 lines of post text).
+        - For each post, check if there is an entry in the `role` mapping (matched via the post_id).
         - If a **valid and relevant role** is provided, keep the assigned marks as per the placement matrix.
         - If **no role** is provided, deduct **1 mark** from that achievement and clearly mention in `why` → *"Deducted 1 mark as role was not described in the post"*.
         - If a **role is provided but is irrelevant/unrelated** to the post, do not award the actual marks. Mention in `why` → *"Role mentioned does not match the achievement, hence 1 mark deducted"*.
@@ -136,60 +142,90 @@ class SRMPlacementScorer:
         {role}
         """
 
-
-
-
-
-    """     def load_post_data_from_combined(self, combined_file: str, username: str) -> list:
-        #Load from JSON file (legacy method).
-        if not os.path.exists(combined_file):
-            raise FileNotFoundError(f"Combined file not found: {combined_file}")
-        with open(combined_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        if username not in data or "original_scrapping" not in data[username]:
-            raise ValueError(f"No original_scrapping data found for user '{username}' in {combined_file}")
-        return data[username]["original_scrapping"] """
-
-
-
     def load_post_data_from_firestore(self, user_data: dict) -> list:
         """Load from Firestore data."""
         if "original_scrapping" not in user_data:
             raise ValueError("No original_scrapping data found in user data")
         return user_data["original_scrapping"]
-    
 
+    def run_scoring(self, linkedin_posts: list, role_of_user: dict) -> dict:
+        # Clean the data first
+        cleaned_posts = self.neccessary_tools._clean_post_data(linkedin_posts)
+        
+        print(f"Original posts: {len(linkedin_posts)}, Cleaned posts: {len(cleaned_posts)}")
+        
+        # Check if we need to chunk the data
+        if self.neccessary_tools._should_chunk_data(cleaned_posts, role_of_user):
+            print("Data is large, processing in chunks...")
+            return self._process_in_chunks(cleaned_posts, role_of_user)
+        else:
+            print("Processing all data in single request...")
+            return self._process_single_batch(cleaned_posts, role_of_user)
 
-
-    def run_scoring(self, linkedin_posts: list,role_of_user:dict) -> dict:
+    def _process_single_batch(self, posts: list, role_data: dict) -> dict:
+        """Process all posts in a single batch."""
         prompt_str = self.prompt_template.format(
             scoring_metrics=json.dumps(self.scoring_metrics),
-            user_data=json.dumps(linkedin_posts),
-            role=json.dumps(role_of_user)#for adding roles
+            user_data=json.dumps(posts),
+            role=json.dumps(role_data)
         )
+        
+        # Save cleaned prompt for debugging
+        with open(r"/home/akshat/project_codes/insights_SIH_version/temp/cleaned_prompt.json", "w", encoding="utf-8") as f:
+            json.dump({
+                "final_prompt": prompt_str,
+                "token_estimate": self.neccessary_tools._estimate_token_count(prompt_str),
+                "post_count": len(posts)
+            }, f, indent=4, ensure_ascii=False)
+
         messages = [HumanMessage(content=prompt_str)]
         response = self.llm.invoke(messages)
         output_text = response.content
-        #cleaning the output
+        
+        return self._parse_llm_output(output_text)
+
+    def _process_in_chunks(self, posts: list, role_data: dict) -> dict:
+        """Process posts in chunks and merge results."""
+        chunks = self.neccessary_tools._chunk_posts(posts, chunk_size=10)
+        print(f"Processing {len(chunks)} chunks...")
+        
+        chunk_results = []
+        
+        for i, chunk in enumerate(chunks):
+            print(f"Processing chunk {i+1}/{len(chunks)} with {len(chunk)} posts...")
+            
+            # Filter role data for this chunk
+            chunk_post_ids = {post['post_id'] for post in chunk}
+            chunk_role_data = {k: v for k, v in role_data.items() if k in chunk_post_ids}
+            
+            try:
+                result = self._process_single_batch(chunk, chunk_role_data)
+                chunk_results.append(result)
+            except Exception as e:
+                print(f"Error processing chunk {i+1}: {e}")
+                chunk_results.append({})  # Add empty result for failed chunk
+        
+        # Merge all chunk results
+        return self.neccessary_tools._merge_scoring_results(chunk_results)
+
+    def _parse_llm_output(self, output_text: str) -> dict:
+        """Parse and clean LLM output."""
+        # Clean the output
         if output_text.startswith("```"):
             output_text = output_text.strip("`")
             if output_text.lower().startswith("json"):
                 output_text = output_text[4:].strip()
         if output_text.endswith("```"):
             output_text = output_text[:-3].strip()
-        print(f"LLM raw output:\n{output_text}\n")
+        
+        print(f"LLM raw output length: {len(output_text)} characters")
 
         try:
             parsed = json.loads(output_text)
+            return parsed
         except json.JSONDecodeError as e:
-            print(f"Error parsing JSON output: {e}\nOutput was:\n{output_text}")
-            raise ValueError(f"Failed to parse JSON output from LLM: {e}\nOutput was:\n{output_text}")
-        return parsed
-
-
-
-
-
+            print(f"Error parsing JSON output: {e}\nOutput was:\n{output_text[:500]}...")
+            raise ValueError(f"Failed to parse JSON output from LLM: {e}")
 
     def update_combined_file(self, combined_file: str, username: str, scored_data: dict):
         if os.path.exists(combined_file):
@@ -207,20 +243,10 @@ class SRMPlacementScorer:
 
     def process(self, combined_file: str, username: str) -> dict:
         posts = self.load_post_data_from_combined(combined_file, username)
-        scored_data = self.run_scoring(posts)
+        role_of_user = self.load_role_data_from_combined(combined_file, username)  # add helper
+        scored_data = self.run_scoring(posts, role_of_user)
         self.update_combined_file(combined_file, username, scored_data)
         return scored_data
-
-
-
-""" def run_scoring_pipeline(username: str,
-                             scoring_matrix_file: str,
-                             combined_file: str,
-                             api_key_env: str = "GEMINI_API_KEY") -> dict:
-    scorer = SRMPlacementScorer(scoring_matrix_path=scoring_matrix_file, api_key_env=api_key_env)
-    return scorer.process(combined_file, username)
- """
-
 
 
 async def run_scoring_pipeline_firestore(username: str, 
