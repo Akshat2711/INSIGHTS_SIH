@@ -2,7 +2,7 @@ import {
   chatController,
   sessionController,
 } from '../controllers/chatController';
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 
 const router = Router();
 

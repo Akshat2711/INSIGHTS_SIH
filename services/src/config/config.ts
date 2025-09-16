@@ -24,4 +24,10 @@ export const config = {
     apiUrl: process.env.LLM_API_URL || '',
     apiKey: process.env.LLM_API_KEY || '',
   },
+  github: {
+    clientId: process.env.GITHUB_CLIENT_ID || '',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+    redirectUri: process.env.GITHUB_REDIRECT_URI || '',
+    personalAccessToken: process.env.GITHUB_PERSONAL_ACCESS_TOKEN || '',
+  },
 };
