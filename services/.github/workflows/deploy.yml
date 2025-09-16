@@ -1,6 +1,8 @@
 name: Fly Deploy
 on:
-  workflow_call:   # change to main if needed
+  push: 
+    branches: 
+       - main    # change to main if needed
 jobs:
   deploy:
     name: Deploy app
