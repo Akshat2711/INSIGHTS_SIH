@@ -1,0 +1,10 @@
+name: Run Fly Deploy
+
+on:
+  push:
+    branches:
+      - main   # triggers automatically on push to main
+
+jobs:
+  call-deploy:
+    uses: ./services/.github/workflows/deploy.yml
