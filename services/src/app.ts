@@ -10,6 +10,7 @@ import BotRoutes from './routes/bot';
 import ChatRoutes from './routes/chat';
 import { CertificationRoutes } from './routes/certifications';
 import GitHubRoutes from './routes/github';
+import ResumeRoutes from './routes/resume';
 
 const app = express();
 
@@ -81,6 +82,7 @@ app.use('/aryabytes/api/services', BotRoutes);
 app.use('/aryabytes/api/services', ChatRoutes);
 app.use('/aryabytes/api/services', CertificationRoutes);
 app.use('/aryabytes/api/services', GitHubRoutes);
+app.use('/aryabytes/api/services/v1/resume', ResumeRoutes);
 
 // 404 handler
 app.use((req, res) => {

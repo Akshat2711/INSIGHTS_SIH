@@ -25,7 +25,7 @@ const logger = winston.createLogger({
     winston.format.json(),
   ),
   defaultMeta: {
-    service: 'reflow-admin-api',
+    service: 'aryabytes-api',
     environment: nodeEnv,
   },
   transports,
