@@ -170,13 +170,7 @@ class SRMPlacementScorer:
             role=json.dumps(role_data)
         )
         
-        # Save cleaned prompt for debugging
-        with open(r"/home/akshat/project_codes/insights_SIH_version/temp/cleaned_prompt.json", "w", encoding="utf-8") as f:
-            json.dump({
-                "final_prompt": prompt_str,
-                "token_estimate": self.neccessary_tools._estimate_token_count(prompt_str),
-                "post_count": len(posts)
-            }, f, indent=4, ensure_ascii=False)
+
 
         messages = [HumanMessage(content=prompt_str)]
         response = self.llm.invoke(messages)

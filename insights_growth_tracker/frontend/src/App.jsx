@@ -28,7 +28,7 @@ function App() {
 
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<LoginCard />} />
+        <Route path="/" element={<SearchInsights />} />
         <Route path="/login" element={<LoginCard />} />
         <Route path="/signup" element={<SignupCard />} />
 
@@ -71,11 +71,7 @@ function App() {
 
         <Route
           path="/search"
-          element={
-            <PrivateRoute>
-              <SearchInsights/>
-            </PrivateRoute>
-          }
+          element={<SearchInsights/>}
         />
 
          <Route
