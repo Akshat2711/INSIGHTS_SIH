@@ -235,10 +235,12 @@ Please be thorough and accurate in your extraction.`;
 
       try {
         // Parse the JSON response
+        logger.info('Raw AI Response:', extractedData);
         const clean_raw_response = extractedData
           .replace(/```[a-z]*\n?/gi, '')
           .replace(/```/g, '')
           .trim();
+        logger.info('Cleaned AI Response:', clean_raw_response);
         const resumeData = JSON.parse(clean_raw_response);
         return resumeData as ResumeData;
       } catch (parseError) {

@@ -81,4 +81,73 @@ const getUserPublicRepos = async (username: string) => {
   }
 };
 
-export { getUserPublicProfile, getUserPublicRepos };
+const getUserRepoCommits = async (username: string, repoName: string) => {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${username}/${repoName}/commits?sha=main&per_page=100&page=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${config.github.personalAccessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      throw new Error('Unexpected response format from GitHub API');
+    }
+    return data.map((commit: any) => ({
+      sha: commit.sha,
+      message: commit.commit.message,
+      url: commit.html_url,
+      committer: commit.commit.committer.name,
+      commit_date: commit.commit.committer.date,
+      committer_email: commit.commit.committer.email,
+    }));
+  } catch (error) {
+    logger.error('Failed to fetch GitHub repository commits:', error);
+    throw error;
+  }
+};
+
+const getCommitStats = async (
+  username: string,
+  repoName: string,
+  sha: string,
+) => {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${username}/${repoName}/commits/${sha}`,
+      {
+        headers: {
+          Authorization: `Bearer ${config.github.personalAccessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return {
+      total_comments: data.commit.comment_count,
+      total_changes: data.stats.total,
+      total_files_changed: data.files.length,
+      total_additions: data.stats.additions,
+      total_deletions: data.stats.deletions,
+    };
+  } catch (error) {
+    logger.error('Failed to fetch GitHub commit stats:', error);
+    throw error;
+  }
+};
+
+export {
+  getUserPublicProfile,
+  getUserPublicRepos,
+  getUserRepoCommits,
+  getCommitStats,
+};
