@@ -443,9 +443,9 @@ return (
 
 
     {/* Main Content */}
-    <div className="relative z-10 pt-20 pb-16">
+    <div className="relative z-10 pt-28 pb-16">
       {/* Hero Header Section */}
-      <section className="px-8 mb-16">
+      <section className="px-8 mb-16 mt-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-4 mb-6">

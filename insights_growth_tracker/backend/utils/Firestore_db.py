@@ -215,3 +215,71 @@ class FirestoreUserManager:
         except Exception as e:
             logger.error(f"Error searching users by keyword '{keyword}': {e}")
             return []
+
+
+
+#to handle saving of github data by user
+    def save_github_data(self, user_id: str, github_data: Dict[str, Any]) -> bool:
+        """Save GitHub data to user document using LinkedIn user ID."""
+        try:
+            doc_ref = self.db.collection(self.collection_name).document(user_id)  # user_id is LinkedIn ID
+            doc_ref.set({
+                'github_data': github_data,
+                'last_updated': firestore.SERVER_TIMESTAMP
+            }, merge=True)
+            
+            logger.info(f"GitHub data saved for LinkedIn user {user_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving GitHub data for LinkedIn user {user_id}: {e}")
+            return False
+
+    def get_user_github_data(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user's GitHub data from Firestore using LinkedIn user ID."""
+        try:
+            user_data = self.get_user_data(user_id)  # user_id is LinkedIn ID
+            if user_data:
+                return user_data.get('github_data')
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting GitHub data for LinkedIn user {user_id}: {e}")
+            return None
+        
+
+
+
+
+
+
+#to save resume data uploaded by user
+    def save_resume_data(self, user_id: str, resume_data: Dict[str, Any]) -> bool:
+        """Append resume analysis data to existing user document using LinkedIn user ID."""
+        try:
+            doc_ref = self.db.collection(self.collection_name).document(user_id)
+            
+            # Use merge=True to append/update the resume_data field without overwriting other fields
+            doc_ref.set({
+                'resume_data': resume_data,
+                'last_updated': firestore.SERVER_TIMESTAMP
+            }, merge=True)  # This ensures existing data is preserved
+            
+            logger.info(f"Resume data merged with existing data for LinkedIn user {user_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving resume data for LinkedIn user {user_id}: {e}")
+            return False
+
+    def get_user_resume_data(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user's resume data from Firestore using LinkedIn user ID."""
+        try:
+            user_data = self.get_user_data(user_id)
+            if user_data:
+                return user_data.get('resume_data')
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting resume data for LinkedIn user {user_id}: {e}")
+            return None

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query,UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -9,9 +9,11 @@ import threading
 import concurrent.futures
 import os
 import uvicorn
+import requests
 
 from utils.post_to_numbers import run_scoring_pipeline_firestore
 from utils.Firestore_db import FirestoreUserManager
+from utils.score_updater import update_scores_for_role_changes, run_async
 
 import logging
 import firebase_admin
@@ -184,6 +186,9 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
         logger.error(f"Scraping invocation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
 @app.get('/getleaderboard')
 async def get_leaderboard():
     """Get users ranked by total points - useful for leaderboard displays."""
@@ -208,6 +213,11 @@ async def get_leaderboard():
         return {"leaderboard": leaderboard}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
 
 # Route to update no. after role added/updated by user
 @app.post('/update_points')
@@ -235,15 +245,16 @@ async def update_marks_for_role(request_data: UpdatePointsRequest):
             print("Failed to update roles")
             raise HTTPException(status_code=500, detail="Failed to update roles")
         
-        print("Roles updated successfully, running scoring pipeline...")
-        # Re-run scoring with updated roles
-        scored_data = run_async(run_scoring_pipeline_firestore(
+        print("Roles updated successfully, recalculating scores...")
+        # Use the efficient score update function instead of full pipeline
+        scored_data = run_async(update_scores_for_role_changes(
             username=username,
+            updated_roles=role_data,
             scoring_matrix_file=os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
             firestore_manager=firestore_manager
         ))
         
-        print("Scoring completed successfully")
+        print("Score update completed successfully")
         return {
             "message": "Points updated successfully",
             "scored_data": scored_data
@@ -256,7 +267,14 @@ async def update_marks_for_role(request_data: UpdatePointsRequest):
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
+
+
+
+
+
+
 
 #searching endpoint
 @app.get('/search-users-by-keyword')
@@ -313,6 +331,87 @@ async def search_users_by_keyword(keyword: str, limit: int = 5):
     except Exception as e:
         logger.error(f"API error searching for keyword '{keyword}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+
+#to handle github requests
+@app.post("/refresh-github-data")
+async def refresh_github_data(github_id: str, userid: str):  # Add userid parameter
+    try:
+        # Fetch GitHub user profile
+        profile_response = requests.get(f"https://insights-sih.fly.dev/aryabytes/api/services/v1/github/user/{github_id}")
+        if profile_response.status_code != 200:
+            return {"success": False, "error": "GitHub user not found"}
+        
+        # Fetch GitHub repositories
+        repos_response = requests.get(f"https://insights-sih.fly.dev/aryabytes/api/services/v1/github/user/{github_id}/repos")
+        if repos_response.status_code != 200:
+            return {"success": False, "error": "Failed to fetch repositories"}
+        
+        profile_data = profile_response.json()
+        repos_data = repos_response.json()
+        
+        # Combine the data
+        github_data = {
+            "github_username": github_id,  # Store the GitHub username
+            "profile": profile_data.get("data", {}),
+            "repositories": repos_data.get("data", [])
+        }
+        
+        # Save to Firestore using LinkedIn user ID
+        user_manager = FirestoreUserManager(db)  # Your existing db instance
+        success = user_manager.save_github_data(userid, github_data)  # Use userid (LinkedIn ID)
+        
+        if success:
+            return {"success": True, "message": "GitHub data saved successfully"}
+        else:
+            return {"success": False, "error": "Failed to save GitHub data"}
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+
+#to handle resume upload
+@app.post("/upload-resume")
+async def upload_resume(resume: UploadFile = File(...), userid: str = Form(...)):
+    try:
+        # Validate file type
+        if not resume.filename.endswith('.pdf'):
+            return {"success": False, "error": "Only PDF files are allowed"}
+        
+        # Prepare file for API call
+        files = {'resume': (resume.filename, resume.file, 'application/pdf')}
+        
+        # Call the resume analysis API
+        response = requests.post(
+            'https://insights-sih.fly.dev/aryabytes/api/services/v1/resume/analyze',
+            files=files
+        )
+        
+        if response.status_code != 200:
+            return {"success": False, "error": "Failed to analyze resume"}
+        
+        resume_data = response.json()
+        
+        # Save to Firestore using LinkedIn user ID
+        user_manager = FirestoreUserManager(db)
+        success = user_manager.save_resume_data(userid, resume_data)
+        
+        if success:
+            return {"success": True, "message": "Resume analyzed and saved successfully"}
+        else:
+            return {"success": False, "error": "Failed to save resume data"}
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+
+
+
 
 
 

@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .                     # build using Dockerfile in backend/
+    container_name: insights-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env                  # one level up from backend/
+    volumes:
+      - ../backend_firestore_cred.json:/../backend_firestore_cred.json
+    restart: always

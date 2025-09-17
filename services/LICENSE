@@ -1,0 +1,48 @@
+Copyright (c) 2025 Aryabytes
+
+## Terms and Conditions
+
+### Ownership
+
+This software and associated documentation files (the "Software") are the exclusive property of Aryabytes ("the Organization").
+
+### Private Use
+
+This Software is currently for private use within the Organization only. All rights are reserved by the Organization.
+
+### Permission to Copy
+
+Copies of this Software may be made and distributed **only with explicit written permission** from the Organization. Any unauthorized copying, distribution, or use is strictly prohibited.
+
+### Permitted Use with Permission
+
+Subject to obtaining written permission from the Organization, the following uses are permitted:
+
+1. **Use**: Run the Software for its intended purpose
+2. **Copy**: Make copies of the Software for backup or distribution purposes
+3. **Modify**: Create derivative works based on the Software
+4. **Distribute**: Share the Software with third parties
+
+### Conditions for Permission
+
+Any permission granted by the Organization may include specific conditions such as:
+
+- Attribution requirements
+- Usage limitations
+- Modification restrictions
+- Distribution constraints
+- Commercial use terms
+
+### No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE ORGANIZATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### Contact Information
+
+For permission requests or licensing inquiries, please contact:
+
+Aryabytes
+
+---
+
+**Note**: This license supersedes any reference to other licenses (such as ISC) that may appear in package.json or other files. The terms stated in this LICENSE file take precedence for the use of this Software.

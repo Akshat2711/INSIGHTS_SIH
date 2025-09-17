@@ -222,7 +222,7 @@ const SuggestionTab = () => {
       {/* Enhanced Header */}
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 mt-10">
             <div className="inline-flex items-center gap-4 mb-6">
               <div className={`p-4 rounded-3xl ${
                 darkMode 
