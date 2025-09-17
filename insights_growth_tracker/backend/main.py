@@ -27,15 +27,12 @@ logger = logging.getLogger(__name__)
 try:
     # Initialize Firebase app if not already initialized
     if not firebase_admin._apps:
-        # Use service account key file
-        base_dir = os.path.dirname(__file__)
-        # Go one directory up, then use the file
-        cred_path = os.path.join(base_dir, "..", "backend_firestore_cred.json")
+        firebase_config = json.loads(os.getenv("FIREBASE_CONFIG"))
 
-        cred = credentials.Certificate(os.path.abspath(cred_path))
+        # Important: restore newlines in private key
+        firebase_config["private_key"] = firebase_config["private_key"].replace("\\n", "\n")
 
-        # Or use default credentials if running on Google Cloud
-        # cred = credentials.ApplicationDefault()
+        cred = credentials.Certificate(firebase_config)
         firebase_admin.initialize_app(cred)
     
     db = firestore.client()
