@@ -1,5 +1,10 @@
 import { Request, Response } from 'express';
-import { getUserPublicProfile, getUserPublicRepos } from '../services/github';
+import {
+  getUserPublicProfile,
+  getUserPublicRepos,
+  getUserRepoCommits,
+  getCommitStats,
+} from '../services/github';
 
 const fetchGitHubUserProfile = async (req: Request, res: Response) => {
   try {
@@ -81,4 +86,80 @@ const fetchGitHubUserRepos = async (req: Request, res: Response) => {
   }
 };
 
-export { fetchGitHubUserProfile, fetchGitHubUserRepos };
+const fetchRepoCommits = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.githubUsername;
+    const repoName = req.params.repoName;
+    if (!username || !repoName) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Username and repository name are required',
+      });
+      return;
+    }
+    const commits = await getUserRepoCommits(username, repoName);
+    if (commits) {
+      res.status(200).json({
+        status: 'success',
+        data: { commits, total_count: commits.length },
+        message: 'GitHub repository commits fetched successfully',
+      });
+      return;
+    } else {
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to fetch GitHub repository commits',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch GitHub repository commits',
+    });
+    return;
+  }
+};
+
+const fetchCommitStatistics = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.githubUsername;
+    const repoName = req.params.repoName;
+    const sha = req.params.sha;
+    if (!username || !repoName || !sha) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Username, repository name, and commit SHA are required',
+      });
+      return;
+    }
+    const stats = await getCommitStats(username, repoName, sha);
+    if (stats) {
+      res.status(200).json({
+        status: 'success',
+        data: stats,
+        message: 'GitHub commit statistics fetched successfully',
+      });
+      return;
+    } else {
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to fetch GitHub commit statistics',
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch GitHub commit statistics',
+    });
+    return;
+  }
+};
+
+export {
+  fetchGitHubUserProfile,
+  fetchGitHubUserRepos,
+  fetchRepoCommits,
+  fetchCommitStatistics,
+};
