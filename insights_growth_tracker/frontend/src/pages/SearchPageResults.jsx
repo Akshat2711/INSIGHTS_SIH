@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Award, Code, Briefcase, Github, Mail, FileText, ExternalLink, Trophy, Calendar, MessageCircle, Heart, Star, MapPin, Linkedin, Sun, Moon, Zap, Target, Crown } from 'lucide-react';
 import Particles from '../components/Particles';
+import ChatBot from '../components/Chatbot';
 
 const SearchPageResults = () => {
   const [userData, setUserData] = useState(null);
@@ -186,6 +187,9 @@ const SearchPageResults = () => {
 
   return (
     <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
+
+      <ChatBot user_data={userData} theme_card_color="blue" />
+
       {/* Fixed Particles Background - covering entire page */}
       <div className="fixed inset-0 w-full h-full z-0">
         <Particles
