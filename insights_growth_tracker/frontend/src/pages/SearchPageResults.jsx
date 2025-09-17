@@ -5,8 +5,7 @@ import Particles from '../components/Particles';
 const SearchPageResults = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode] = useState(true);
   const params = new URLSearchParams(window.location.search);
   const userid = params.get("userid"); // e.g. ?userid=arnab-dt
 
@@ -207,7 +206,7 @@ const SearchPageResults = () => {
       {/* Main Content */}
       <div className="relative z-10">
 
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-6 py-12 pt-32">
         {/* Profile Section */}
         <div className="mb-16">
           <div className={`${

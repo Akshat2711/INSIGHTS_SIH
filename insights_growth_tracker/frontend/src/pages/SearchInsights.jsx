@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Zap, Users, TrendingUp, Filter, ArrowRight, Star, Award, Target } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Particles from '../components/Particles';
 
@@ -12,11 +12,9 @@ export default function SearchInsights() {
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
   const [isDark, setIsDark] = useState(false);
-  const [activeTab, setActiveTab] = useState("search");
   const inputRef = useRef(null);
 
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -319,10 +317,10 @@ export default function SearchInsights() {
 
                 {/* Results Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {(results.top_users || []).map((user, index) => (
+                  {(results.top_users || []).map((user) => (
                     <div
                       key={user.user_id}
-                      className={`group ${t.cardBg} rounded-3xl p-8 backdrop-blur-xl border ${t.border} hover:${t.glow} transition-all duration-300 cursor-pointer transform hover:-translate-y-2 ${t.shadow}`}
+                      className={`group ${t.cardBg} rounded-3xl p-8 backdrop-blur-xl border ${t.border} hover:shadow-purple-500/30 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 ${t.shadow}`}
                       onClick={() => navigate(`/searchresults?userid=${user.user_id}`)}
                     >
                       <div className="flex items-start gap-6">

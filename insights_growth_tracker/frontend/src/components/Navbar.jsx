@@ -52,11 +52,11 @@ const Navbar = () => {
   return (
     <>
       {/* Modern Glassmorphism Navbar */}
-      <nav className={`fixed top-8 left-1/2 transform -translate-x-1/2 max-w-5xl rounded-3xl shadow-2xl z-50 transition-all duration-300 ${
+      <nav className={`fixed top-8 left-1/2 transform -translate-x-1/2 max-w-6xl rounded-3xl shadow-2xl z-50 transition-all duration-300 ${
         scrolled 
           ? 'py-3 backdrop-blur-md bg-black/30 border-b border-white/10' 
           : 'py-4 backdrop-blur-sm bg-black/20 border-b border-white/5'
-      }`} style={{width: '90%'}}>
+      }`} style={{width: '95%'}}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between">
             
