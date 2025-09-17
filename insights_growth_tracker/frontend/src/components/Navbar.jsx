@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, Home, User, BarChart3, Users, Settings, Search, ChevronDown } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(localStorage.getItem("insight_theme") === "dark");
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [currentPath, setCurrentPath] = useState('');
+  const currentPath = location.pathname;
 
   // Listen for scroll events to add blur effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    
-    // Set current path
-    setCurrentPath(window.location.pathname);
     
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -39,6 +39,16 @@ const Navbar = () => {
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
+  // Function to handle search button click
+  const handleSearchClick = () => {
+    navigate('/search');
+  };
+
+  // Function to handle logo click
+  const handleLogoClick = () => {
+    navigate('/me');
+  };
+
   return (
     <>
       {/* Modern Glassmorphism Navbar */}
@@ -58,7 +68,9 @@ const Navbar = () => {
                     ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 group-hover:from-purple-500/40 group-hover:to-pink-500/40' 
                     : 'bg-gradient-to-r from-purple-400/30 to-pink-400/30 group-hover:from-purple-300/40 group-hover:to-pink-300/40'
                 }`}></div>
-                <h1 className={`relative text-2xl font-black tracking-tight cursor-pointer transition-all duration-300 ${
+                <h1 
+                  onClick={handleLogoClick}
+                  className={`relative text-2xl font-black tracking-tight cursor-pointer transition-all duration-300 ${
                   darkMode 
                     ? 'bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400' 
                     : 'bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600'
@@ -78,6 +90,25 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-2">
+              <button
+                onClick={handleSearchClick}
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 group backdrop-blur-sm ${
+                  darkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-white/10 border border-white/10'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-black/10 border border-black/10'
+                }`}
+              >
+                <Search size={18} className="relative z-10" />
+                <span className="relative z-10">Search</span>
+                
+                {/* Hover effect */}
+                <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 ${
+                  darkMode 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                    : 'bg-gradient-to-r from-purple-400 to-pink-400'
+                }`}></div>
+              </button>
+              
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.href;
@@ -175,6 +206,27 @@ const Navbar = () => {
             
             {/* Mobile Navigation Items */}
             <div className="p-6 space-y-3">
+              <button
+                onClick={() => {
+                  handleSearchClick();
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 group backdrop-blur-sm ${
+                  darkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-white/10'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-black/10'
+                }`}
+              >
+                <div className={`p-2 rounded-lg ${
+                  darkMode
+                    ? 'bg-white/10 group-hover:bg-white/20'
+                    : 'bg-black/10 group-hover:bg-black/20'
+                } transition-all duration-300`}>
+                  <Search size={20} />
+                </div>
+                <span className="font-medium">Search</span>
+              </button>
+              
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.href;
