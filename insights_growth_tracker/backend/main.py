@@ -23,23 +23,43 @@ from firebase_admin import credentials, firestore
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Firebase Admin SDK
 try:
-    # Initialize Firebase app if not already initialized
     if not firebase_admin._apps:
-        firebase_config = json.loads(os.getenv("FIREBASE_CONFIG"))
+        try:
+            # Load from .env
+            raw_config = os.getenv("FIREBASE_CONFIG")
+            if not raw_config:
+                raise ValueError("FIREBASE_CONFIG missing in environment")
 
-        # Important: restore newlines in private key
-        firebase_config["private_key"] = firebase_config["private_key"].replace("\\n", "\n")
+            firebase_config = json.loads(raw_config)
+            firebase_config["private_key"] = firebase_config["private_key"].replace("\\n", "\n")
 
-        cred = credentials.Certificate(firebase_config)
-        firebase_admin.initialize_app(cred)
-    
+            cred = credentials.Certificate(firebase_config)
+            firebase_admin.initialize_app(cred)
+            logger.info("Firebase initialized from environment")
+        
+        except Exception as e_env:
+            logger.warning(f"Failed to load Firebase from env: {e_env}. Trying local JSON file...")
+
+            # Fall back to local JSON
+            cred_path = os.path.join(os.path.dirname(os.getcwd()), "backend_firestore_cred.json")
+            if not os.path.exists(cred_path):
+                raise FileNotFoundError(f"Fallback Firebase JSON file not found at {cred_path}")
+
+            with open(cred_path, "r") as f:
+                firebase_config = json.load(f)
+
+            cred = credentials.Certificate(firebase_config)
+            firebase_admin.initialize_app(cred)
+            logger.info("Firebase initialized from local JSON")
+
     db = firestore.client()
-    logger.info("Firebase initialized successfully")
+    logger.info("Firestore client initialized")
+
 except Exception as e:
-    logger.error(f"Failed to initialize Firebase: {e}")
+    logger.error(f"Failed to initialize Firebase: {e}", exc_info=True)
     db = None
+
 
 app = FastAPI()
 
@@ -55,55 +75,8 @@ app.add_middleware(
 # Initialize Firestore manager
 firestore_manager = FirestoreUserManager(db) if db else None
 
-# Global persistent scraper
-scraper = None
 
-# Create a single background event loop for Playwright/scraper work and start it in a thread
-def _start_background_loop(loop):
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
 
-_bg_loop = asyncio.new_event_loop()
-_bg_thread = threading.Thread(target=_start_background_loop, args=(_bg_loop,), daemon=True)
-_bg_thread.start()
-
-def run_async(coro, timeout: float = None):
-    """Run coroutine in the shared background loop and return result (raises on exception)."""
-    fut = asyncio.run_coroutine_threadsafe(coro, _bg_loop)
-    return fut.result(timeout)
-
-async def get_or_create_scraper():
-    global scraper
-    from utils.profile_scrap import LinkedInScraper
-    try:
-        current_loop = asyncio.get_running_loop()
-    except RuntimeError:
-        current_loop = None
-
-    # No scraper yet -> create one
-    if scraper is None:
-        scraper = LinkedInScraper(headless=True)
-        return scraper
-
-    # If existing scraper was created in the same loop and is usable, reuse it
-    try:
-        if scraper.can_be_used_in_loop():
-            return scraper
-    except Exception:
-        # fall through to recreate
-        pass
-
-    # If the scraper was created in the same loop, attempt to cleanup (safe to await)
-    try:
-        if getattr(scraper, "creation_loop", None) == current_loop:
-            await scraper.cleanup()
-    except Exception:
-        # ignore cleanup errors but do not try to await cross-loop cleanup
-        pass
-
-    # create a fresh scraper for the current loop
-    scraper = LinkedInScraper(headless=False)
-    return scraper
 
 # Pydantic models for request bodies
 class UpdatePointsRequest(BaseModel):
@@ -139,6 +112,12 @@ async def get_all_users():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+
+
+
 @app.get('/scrapdata')
 @app.post('/scrapdata')
 async def get_data_scrapper(userid: str = Query(..., description="User ID parameter")):
@@ -146,43 +125,37 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
     if not firestore_manager:
         raise HTTPException(status_code=500, detail="Firestore not initialized")
 
-    async def scrape_async():
-        try:
-            logger.info(f"Started scrapping data for user: {userid}")
-
-            # Get or create persistent scraper
-            current_scraper = await get_or_create_scraper()
-            
-            # Step 1: Scrape data using persistent scraper
-            posts = await current_scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
-            
-            # Step 2: Save to Firestore
-            if firestore_manager:
-                success = firestore_manager.update_original_scraping(userid, posts)
-                if not success:
-                    return {"success": False, "error": "Failed to save scraping data"}
-
-            # Step 3: Convert scrapped data to numbers and update Firestore
-            await run_scoring_pipeline_firestore(
-                userid,
-                os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
-                firestore_manager
-            )
-
-            return {"success": True, "message": "Data refreshed successfully"}
-            
-        except Exception as e:
-            logger.error(f"Error in scrapping pipeline: {e}")
-            return {"success": False, "error": str(e)}
-
-    # Run async function in shared background loop and return result
     try:
-        result = run_async(scrape_async(), timeout=180)
-        return result
-    except Exception as e:
-        logger.error(f"Scraping invocation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.info(f"Started scrapping data for user: {userid}")
 
+        # Import and create scraper
+        from utils.profile_scrap import LinkedInScraper
+        scraper = LinkedInScraper()
+        
+        # Step 1: Scrape data using linkedin_api
+        posts = scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
+        
+        # Step 2: Save to Firestore
+        if firestore_manager:
+            success = firestore_manager.update_original_scraping(userid, posts)
+            if not success:
+                return {"success": False, "error": "Failed to save scraping data"}
+
+        # Step 3: Convert scrapped data to numbers and update Firestore
+        await run_scoring_pipeline_firestore(
+            userid,
+            os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
+            firestore_manager
+        )
+
+        # Step 4: Cleanup
+        scraper.cleanup()
+
+        return {"success": True, "message": "Data refreshed successfully"}
+        
+    except Exception as e:
+        logger.error(f"Error in scrapping pipeline: {e}")
+        return {"success": False, "error": str(e)}
 
 
 
@@ -442,22 +415,15 @@ async def health_check():
         "firestore": firestore_status
     }
 
+
+
 @app.post('/cleanup')
 async def cleanup_scraper():
-    """Cleanup scraper browser when needed."""
-    async def cleanup_async():
-        global scraper
-        if scraper:
-            await scraper.cleanup()
-            scraper = None
-            return {"success": True, "message": "Scraper cleaned up successfully"}
-        return {"success": True, "message": "No scraper to cleanup"}
+    """Cleanup endpoint - now just returns success since no persistent browser."""
+    return {"success": True, "message": "No persistent scraper to cleanup"}
 
-    try:
-        result = run_async(cleanup_async(), timeout=60)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 # Startup and shutdown events
 @app.on_event("startup")
@@ -467,20 +433,11 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    # Cleanup scraper on app shutdown
-    try:
-        if scraper:
-            # schedule cleanup in the background loop
-            try:
-                run_async(scraper.cleanup(), timeout=60)
-            except Exception:
-                pass
-    finally:
-        # stop background loop
-        try:
-            _bg_loop.call_soon_threadsafe(_bg_loop.stop)
-        except Exception:
-            pass
+    """Simplified shutdown - no browser cleanup needed."""
+    logger.info("Application shutting down")
+
+
+
 
 if __name__ == '__main__':
     

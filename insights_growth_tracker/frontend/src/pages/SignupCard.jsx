@@ -7,7 +7,6 @@ import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import Particles from '../components/Particles';
 import BlurText from '../components/BlurText';
-import LoadingAnimation from '../components/LoadingAnimation';
 
 function SignupCard() {
   const [name, setName] = useState("");
@@ -16,19 +15,24 @@ function SignupCard() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
   const navigate = useNavigate();
 
   //apply theme on the current page load
-  localStorage.getItem("insight_theme") === "dark" ? document.body.style.backgroundColor = "rgb(0, 0, 0)" : document.body.style.backgroundColor = "rgb(207, 207, 207)";
+  const mode = localStorage.getItem("insight_theme") === "dark" ? document.body.style.backgroundColor = "rgb(0, 0, 0)" : document.body.style.backgroundColor = "rgb(207, 207, 207)";
 
   // Theme detection
   const darkMode = localStorage.getItem("insight_theme") === "dark";
 
+  // Theme-based helpers
+  const borderColor = darkMode ? 'border-white' : 'border-black';
+  const textColor = darkMode ? 'text-white' : 'text-gray-900';
+  const secondaryText = darkMode ? 'text-gray-400' : 'text-gray-600';
+  const cardBg = darkMode ? '' : '';
+  const inputBg = darkMode ? 'bg-gray-800' : '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setShowLoadingAnimation(true);
 
     try {
       // 1️⃣ Create user in Firebase Auth
@@ -69,7 +73,6 @@ function SignupCard() {
       alert(err.message);
     } finally {
       setLoading(false);
-      setShowLoadingAnimation(false);
     }
   };
 
@@ -105,7 +108,7 @@ function SignupCard() {
         } else {
           console.warn("User info not updated in localStorage due to fetch error.");
         }
-        console.log(data.message || 'Data refreshed successfully!');
+        setMessage({ type: 'success', text: data.message || 'Data refreshed successfully!' });
 
 
       } else {
@@ -124,9 +127,6 @@ function SignupCard() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
-      {/* Loading Animation Overlay */}
-      <LoadingAnimation isVisible={showLoadingAnimation} />
-      
       {/* Enhanced Particles Background - positioned absolutely behind everything */}
       <div className="absolute inset-0 w-full h-full">
         <Particles

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Award, Code, Briefcase, Github, Mail, FileText, ExternalLink, Trophy, Calendar, MessageCircle, Heart, Star, MapPin, Linkedin, Sun, Moon, Zap, Target, Crown } from 'lucide-react';
+import { User, Award, Code, Briefcase, Github, Mail, FileText, ExternalLink, Trophy, Calendar, MessageCircle, Heart, Star, MapPin, Linkedin, Sun, Moon, Zap, Target, Crown, Book, GitBranch, Users, Eye, Download } from 'lucide-react';
 import Particles from '../components/Particles';
 import ChatBot from '../components/Chatbot';
 
@@ -147,6 +147,138 @@ const SearchPageResults = () => {
     </div>
   );
 
+  const RepositoryCard = ({ repo }) => (
+    <div className={`${
+      isDarkMode 
+        ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10 hover:border-green-400/50' 
+        : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20 hover:border-green-500/50'
+    } border rounded-3xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 backdrop-blur-xl`}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg">
+            <Github className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-lg tracking-tight`}>{repo.name}</h4>
+            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm font-medium`}>{repo.language || 'No language'}</p>
+          </div>
+        </div>
+        <a href={repo.html_url} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+          <ExternalLink className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+        </a>
+      </div>
+      
+      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4 text-sm font-medium leading-relaxed`}>
+        {repo.description || 'No description available'}
+      </p>
+      
+      <div className={`flex items-center justify-between ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm font-semibold`}>
+        <span className="flex items-center gap-2">
+          <Star className="w-4 h-4" />
+          {repo.stargazers_count}
+        </span>
+        <span className="flex items-center gap-2">
+          <GitBranch className="w-4 h-4" />
+          {repo.forks_count}
+        </span>
+        <span className="flex items-center gap-2">
+          <Eye className="w-4 h-4" />
+          {repo.watchers_count}
+        </span>
+      </div>
+    </div>
+  );
+
+  const ResumeSection = ({ resumeData }) => {
+    if (!resumeData || !resumeData.data) return null;
+    
+    const { data } = resumeData;
+    
+    return (
+      <div className={`${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10' 
+          : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20'
+      } border rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 backdrop-blur-xl`}>
+        
+        {/* Skills Section */}
+        {data.skills && data.skills.length > 0 && (
+          <div className="mb-8">
+            <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-xl mb-4 flex items-center gap-3`}>
+              <Code className="w-5 h-5" />
+              Skills
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {data.skills.slice(0, 15).map((skill, index) => (
+                <span key={index} className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-bold rounded-full shadow-lg">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Education Section */}
+        {data.education && data.education.length > 0 && (
+          <div className="mb-8">
+            <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-xl mb-4 flex items-center gap-3`}>
+              <Book className="w-5 h-5" />
+              Education
+            </h4>
+            <div className="space-y-4">
+              {data.education.map((edu, index) => (
+                <div key={index} className={`border-l-4 ${isDarkMode ? 'border-blue-400' : 'border-blue-500'} pl-4 py-2`}>
+                  <h5 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-bold text-lg`}>{edu.degree || edu.qualification}</h5>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold`}>{edu.institution || edu.school}</p>
+                  {edu.year && <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>{edu.year}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Experience Section */}
+        {data.experience && data.experience.length > 0 && (
+          <div className="mb-8">
+            <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-xl mb-4 flex items-center gap-3`}>
+              <Briefcase className="w-5 h-5" />
+              Experience
+            </h4>
+            <div className="space-y-4">
+              {data.experience.map((exp, index) => (
+                <div key={index} className={`border-l-4 ${isDarkMode ? 'border-purple-400' : 'border-purple-500'} pl-4 py-2`}>
+                  <h5 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-bold text-lg`}>{exp.position || exp.title}</h5>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-semibold`}>{exp.company || exp.organization}</p>
+                  {exp.duration && <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm`}>{exp.duration}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Projects Section */}
+        {data.projects && data.projects.length > 0 && (
+          <div>
+            <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-xl mb-4 flex items-center gap-3`}>
+              <Trophy className="w-5 h-5" />
+              Projects
+            </h4>
+            <div className="space-y-4">
+              {data.projects.slice(0, 3).map((project, index) => (
+                <div key={index} className={`border-l-4 ${isDarkMode ? 'border-green-400' : 'border-green-500'} pl-4 py-2`}>
+                  <h5 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-bold text-lg`}>{project.name || project.title}</h5>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-medium text-sm leading-relaxed`}>
+                    {project.description || project.summary}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
@@ -184,7 +316,7 @@ const SearchPageResults = () => {
   const totalProjects = userData?.post_to_no?.project?.length || 0;
   const totalLeadership = userData?.post_to_no?.leadership?.length || 0;
   const totalPoints = userData?.total_points || 0;
-
+  console.log(userData);
   return (
     <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
 
@@ -333,6 +465,95 @@ const SearchPageResults = () => {
             )}
           </div>
         </div>
+
+        {/* GitHub Repositories Section */}
+        {userData?.github_data?.repositories && userData.github_data.repositories.length > 0 && (
+          <div className="mb-16">
+            <h3 className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-10 flex items-center gap-4 tracking-tight`}>
+              <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                <Github className="w-8 h-8 text-white" />
+              </div>
+              GitHub Repositories
+              <div className="ml-auto px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-bold rounded-full shadow-lg">
+                {userData.github_data.repositories.length} repos
+              </div>
+            </h3>
+            
+            {/* GitHub Profile Stats */}
+            {userData.github_data.profile && (
+              <div className={`${
+                isDarkMode 
+                  ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10' 
+                  : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20'
+              } border rounded-3xl p-8 mb-8 backdrop-blur-xl`}>
+                <div className="flex items-center gap-6 mb-6">
+                  <img 
+                    src={userData.github_data.profile.avatar_url} 
+                    alt="GitHub Avatar" 
+                    className="w-20 h-20 rounded-full border-4 border-gradient-to-r from-green-400 to-emerald-500 shadow-lg"
+                  />
+                  <div className="flex-1">
+                    <h4 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-black text-2xl tracking-tight mb-2`}>
+                      @{userData.github_data.github_username}
+                    </h4>
+                    <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} font-medium mb-4`}>
+                      {userData.github_data.profile.bio || 'No bio available'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-r from-green-500/20 to-emerald-500/20">
+                    <div className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {userData.github_data.profile.public_repos}
+                    </div>
+                    <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Repositories</div>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20">
+                    <div className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {userData.github_data.profile.followers}
+                    </div>
+                    <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Followers</div>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-indigo-500/20">
+                    <div className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {userData.github_data.profile.following}
+                    </div>
+                    <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Following</div>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-r from-orange-500/20 to-red-500/20">
+                    <div className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {userData.github_data.profile.public_gists}
+                    </div>
+                    <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Gists</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userData.github_data.repositories.slice(0, 6).map((repo, index) => (
+                <RepositoryCard key={index} repo={repo} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Resume Analysis Section */}
+        {userData?.resume_data && (
+          <div className="mb-16">
+            <h3 className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-10 flex items-center gap-4 tracking-tight`}>
+              <div className="p-4 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl shadow-lg">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              Resume Analysis
+              <div className="ml-auto px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold rounded-full shadow-lg">
+                {userData.resume_data.status}
+              </div>
+            </h3>
+            <ResumeSection resumeData={userData.resume_data} />
+          </div>
+        )}
 
         {/* Recent Activity */}
         <div>
