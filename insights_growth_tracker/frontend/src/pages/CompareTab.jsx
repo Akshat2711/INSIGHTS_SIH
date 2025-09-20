@@ -199,7 +199,7 @@ const CompareTab = () => {
   // only for other user not for logged in user
   const fetchUserData = async (userId, setUserState) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${userId}`);
+      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${userId}`);
       if (!response.ok) throw new Error('User not found');
       const data = await response.json();
       const processedData = processUserData(data, userId);
@@ -226,65 +226,95 @@ const CompareTab = () => {
     return Number.isFinite(n) ? n : 0;
   };
 
-  const processUserData = (data, userId) => {
-    if (!data) return {
-      id: userId, name: formatUserIdToName(userId), cgpa: 'N.M.', hackathons: 0, internships: 0, certifications: 0, projects: 0,
-      inhouseProjects: 0, fsdProjects: 0, codingPlatform: 0, memberships: 0, assessments: 0, leadership: 0, researchPublications: 0,
-      posts: 0, totalPoints: 0,
-    };
 
-    const userData = data.user_data || {};
-    const postData = userData.post_to_no || {};
-    const name = formatUserIdToName(userId);
 
-    const hackathons = postData.hackathon ? postData.hackathon.length : 0;
-    const certifications = postData.certification ? postData.certification.length : 0;
-    const projects = postData.project ? postData.project.length : 0;
-    const leadership = postData.leadership ? postData.leadership.length : 0;
-    const internships = postData.internship ? postData.internship.length : 0;
-    const inhouseProjects = postData.inhouse_project ? postData.inhouse_project.length : 0;
-    const fsdProjects = postData.fsd_project ? postData.fsd_project.length : 0;
-    const codingPlatform = postData.coding_platform ? postData.coding_platform.length : 0;
-    const memberships = postData.membership ? postData.membership.length : 0;
-    const assessments = postData.assessment ? postData.assessment.length : 0;
-    const researchPublications = postData.research_publications ? postData.research_publications.length : 0;
 
-    const cgpa = data.cgpa || 'N.M.';
-    const totalPosts = userData.original_scrapping ? userData.original_scrapping.length : 0;
 
-    const totalPoints = [
-      ...(postData.hackathon || []),
-      ...(postData.certification || []),
-      ...(postData.project || []),
-      ...(postData.leadership || []),
-      ...(postData.internship || []),
-      ...(postData.inhouse_project || []),
-      ...(postData.fsd_project || []),
-      ...(postData.coding_platform || []),
-      ...(postData.membership || []),
-      ...(postData.assessment || []),
-      ...(postData.research_publications || []),
-    ].reduce((sum, item) => sum + parseInt(item.points || 0, 10), 0);
-
-    return {
-      id: userId,
-      name,
-      cgpa,
-      hackathons,
-      internships,
-      certifications,
-      projects,
-      inhouseProjects,
-      fsdProjects,
-      codingPlatform,
-      memberships,
-      assessments,
-      leadership,
-      researchPublications,
-      posts: totalPosts,
-      totalPoints,
-    };
+const processUserData = (data, userId) => {
+  if (!data) return {
+    id: userId, name: formatUserIdToName(userId), cgpa: 'N.M.', hackathons: 0, internships: 0, certifications: 0, projects: 0,
+    inhouseProjects: 0, fsdProjects: 0, codingPlatform: 0, memberships: 0, assessments: 0, leadership: 0, researchPublications: 0,
+    posts: 0, totalPoints: 0, githubRepos: 0, githubStars: 0, githubForks: 0, githubFollowers: 0, workExperience: 0, 
+    volunteerExperience: 0, awardsRecognitions: 0,
   };
+
+  const userData = data.user_data || {};
+  const postData = userData.post_to_no || {};
+  const githubData = userData.github_data || {};
+  const resumeData = userData.resume_data?.data || {};
+  const name = formatUserIdToName(userId);
+
+  // LinkedIn post data
+  const hackathons = postData.hackathon ? postData.hackathon.length : 0;
+  const certifications = postData.certification ? postData.certification.length : 0;
+  const projects = postData.project ? postData.project.length : 0;
+  const leadership = postData.leadership ? postData.leadership.length : 0;
+  const internships = postData.internship ? postData.internship.length : 0;
+  const inhouseProjects = postData.inhouse_project ? postData.inhouse_project.length : 0;
+  const fsdProjects = postData.fsd_project ? postData.fsd_project.length : 0;
+  const codingPlatform = postData.coding_platform ? postData.coding_platform.length : 0;
+  const memberships = postData.membership ? postData.membership.length : 0;
+  const assessments = postData.assessment ? postData.assessment.length : 0;
+  const researchPublications = postData.research_publications ? postData.research_publications.length : 0;
+
+  // GitHub metrics
+  const githubRepos = githubData.repositories ? githubData.repositories.length : 0;
+  const githubStars = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_stars || 0), 0) : 0;
+  const githubForks = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_forks || 0), 0) : 0;
+  const githubFollowers = githubData.profile?.followers || 0;
+
+  // Resume metrics
+  const workExperience = resumeData.work_experience ? resumeData.work_experience.length : 0;
+  const volunteerExperience = resumeData.volunteer_experience ? resumeData.volunteer_experience.length : 0;
+  const awardsRecognitions = resumeData.awards_and_recognitions ? resumeData.awards_and_recognitions.length : 0;
+
+  const cgpa = data.cgpa || resumeData.education?.[0]?.gpa || 'N.M.';
+  const totalPosts = userData.original_scrapping ? userData.original_scrapping.length : 0;
+
+  const totalPoints = [
+    ...(postData.hackathon || []),
+    ...(postData.certification || []),
+    ...(postData.project || []),
+    ...(postData.leadership || []),
+    ...(postData.internship || []),
+    ...(postData.inhouse_project || []),
+    ...(postData.fsd_project || []),
+    ...(postData.coding_platform || []),
+    ...(postData.membership || []),
+    ...(postData.assessment || []),
+    ...(postData.research_publications || []),
+  ].reduce((sum, item) => sum + parseInt(item.points || 0, 10), 0);
+
+  return {
+    id: userId,
+    name,
+    cgpa,
+    hackathons,
+    internships,
+    certifications,
+    projects,
+    inhouseProjects,
+    fsdProjects,
+    codingPlatform,
+    memberships,
+    assessments,
+    leadership,
+    researchPublications,
+    posts: totalPosts,
+    totalPoints,
+    // GitHub data
+    githubRepos,
+    githubStars,
+    githubForks,
+    githubFollowers,
+    // Resume data
+    workExperience,
+    volunteerExperience,
+    awardsRecognitions,
+  };
+};
+
+
 
   const handleSearch = async () => {
     if (!compareUserId.trim()) {
@@ -318,6 +348,15 @@ const CompareTab = () => {
     { key: 'leadership', label: 'Leadership', icon: Shield },
     { key: 'researchPublications', label: 'Research Publications', icon: BookOpen },
     { key: 'posts', label: 'LinkedIn Posts', icon: Calendar },
+    // New GitHub metrics
+    { key: 'githubRepos', label: 'GitHub Repositories', icon: Code },
+    { key: 'githubStars', label: 'GitHub Stars', icon: Star },
+    { key: 'githubForks', label: 'GitHub Forks', icon: Users },
+    { key: 'githubFollowers', label: 'GitHub Followers', icon: Users },
+    // New resume metrics
+    { key: 'workExperience', label: 'Work Experience', icon: Briefcase },
+    { key: 'volunteerExperience', label: 'Volunteer Experience', icon: Users },
+    { key: 'awardsRecognitions', label: 'Awards & Recognitions', icon: Award }
   ];
 
   return (

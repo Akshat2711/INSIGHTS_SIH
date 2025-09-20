@@ -82,7 +82,7 @@ function SignupCard() {
 
     try {
       const res = await fetch(
-        `http://127.0.0.1:8080/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
+        `https://insights-sih-tf-lva.fly.dev/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -93,7 +93,7 @@ function SignupCard() {
         
         //getting new info stored in backend
         try {
-          const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${linkedinId}`);
+          const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${linkedinId}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }

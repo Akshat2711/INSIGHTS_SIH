@@ -11,7 +11,7 @@ export default function SearchInsights() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState(null);
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const inputRef = useRef(null);
 
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function SearchInsights() {
 
     try {
       const encoded = encodeURIComponent(query);
-      const endpoint = `http://127.0.0.1:8080/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
+      const endpoint = `https://insights-sih-tf-lva.fly.dev/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
 
       const resp = await fetch(endpoint);
       if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);

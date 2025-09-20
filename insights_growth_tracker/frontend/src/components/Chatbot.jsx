@@ -3,8 +3,41 @@ import { Send, Bot, X } from "lucide-react";
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
+const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
+  // Color map to dynamically set Tailwind classes based on the theme_card_color prop.
+  const colorMap = {
+    pink: {
+      primary: "pink",
+      secondary: "cyan",
+    },
+    blue: {
+      primary: "blue",
+      secondary: "sky",
+    },
+    green: {
+      primary: "green",
+      secondary: "emerald",
+    },
+    purple: {
+      primary: "purple",
+      secondary: "indigo",
+    },
+    yellow: {
+      primary: "yellow",
+      secondary: "orange",
+    },
+    red: {
+      primary: "red",
+      secondary: "rose",
+    },
+  };
+
+  const colors = colorMap[theme_card_color] || colorMap.pink;
+  const primaryColor = colors.primary;
+  const secondaryColor = colors.secondary;
+
   // Initialize Google Generative AI
+  // The API key is retrieved here. Please replace "YOUR_API_KEY_HERE" with your actual Gemini API key.
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GENAI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
@@ -172,7 +205,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
           }
           
           parts.push(
-            <strong key={`bold-${lineIndex}-${match.index}`} className="font-bold text-blue-800">
+            <strong key={`bold-${lineIndex}-${match.index}`} className={`font-bold text-${primaryColor}-800`}>
               {match[1]}
             </strong>
           );
@@ -223,7 +256,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
             <a 
               key={`link-${currentIndex}-${match.index}`}
               href={isEmail ? `mailto:${url}` : isPhone ? `tel:${url.replace(/\s/g, '')}` : url}
-              className="text-blue-600 hover:text-blue-800 underline font-medium hover:bg-blue-50 px-1 rounded transition-all duration-200"
+              className={`text-${primaryColor}-600 hover:text-${primaryColor}-800 underline font-medium hover:bg-${primaryColor}-50 px-1 rounded transition-all duration-200`}
               target={isRelativePath || isEmail || isPhone ? "_self" : "_blank"}
               rel={isRelativePath || isEmail || isPhone ? "" : "noopener noreferrer"}
             >
@@ -246,7 +279,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
       if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
         elements.push(
           <div key={`bullet-${lineIndex}`} className="flex items-start ml-4 mb-2">
-            <span className="text-blue-600 mr-2 flex-shrink-0">•</span>
+            <span className={`text-${primaryColor}-600 mr-2 flex-shrink-0`}>•</span>
             <span className="flex-1">{processedLine}</span>
           </div>
         );
@@ -271,7 +304,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
     <div className="fixed bottom-6 right-6 flex flex-col items-end z-50">
       {/* Animated Bot Icon */}
       <div
-        className={`p-4 bg-gradient-to-br from-blue-400 via-blue-500 to-cyan-400 text-white rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 ${isOpen ? 'rotate-12' : ''}`}
+        className={`p-4 bg-gradient-to-br from-${primaryColor}-400 via-${primaryColor}-500 to-${secondaryColor}-400 text-white rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 ${isOpen ? 'rotate-12' : ''}`}
         onClick={toggleChat}
       >
         <Bot className="text-3xl w-8 h-8" />
@@ -280,7 +313,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
       {/* Chat Sidebar */}
       {isOpen && (
         <div
-          className="fixed bottom-0 right-0 w-96 h-[32rem] bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex flex-col rounded-t-2xl shadow-2xl border border-blue-200 transform transition-all duration-300 ease-out"
+          className={`fixed bottom-0 right-0 w-96 h-[32rem] bg-gradient-to-br from-${primaryColor}-50 via-white to-${secondaryColor}-50 flex flex-col rounded-t-2xl shadow-2xl border border-${primaryColor}-200 transform transition-all duration-300 ease-out`}
           style={{
             animation: 'slideIn 0.3s ease-out'
           }}
@@ -293,7 +326,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
             </div>
             <button
               onClick={toggleChat}
-              className="text-blue-100 hover:text-white hover:bg-blue-600 rounded-full p-1 transition duration-200"
+              className={`text-${primaryColor}-100 hover:text-white hover:bg-${primaryColor}-600 rounded-full p-1 transition duration-200`}
             >
               <X className="w-5 h-5" />
             </button>
@@ -303,7 +336,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-black">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 mt-8">
-                <Bot className="w-12 h-12 mx-auto text-blue-300 mb-2" />
+                <Bot className={`w-12 h-12 mx-auto text-${primaryColor}-300 mb-2`} />
                 <p className="text-sm">
                   Hello! I'm here to help you learn more about {userName}. 
                   Ask me about their skills, projects, experience, or anything else!
@@ -325,8 +358,8 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
                 <div
                   className={`max-w-xs p-3 text-sm leading-relaxed ${
                     msg.user
-                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-l-2xl rounded-tr-md shadow-md"
-                      : "bg-white text-gray-800 rounded-r-2xl rounded-tl-md shadow-md border border-blue-100"
+                      ? `bg-gradient-to-r from-${primaryColor}-500 to-${secondaryColor}-500 text-white rounded-l-2xl rounded-tr-md shadow-md`
+                      : `bg-white text-gray-800 rounded-r-2xl rounded-tl-md shadow-md border border-${primaryColor}-100`
                   }`}
                 >
                   {msg.user ? msg.text : formatMessage(msg.text)}
@@ -336,12 +369,12 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
             
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white text-gray-800 rounded-r-2xl rounded-tl-md shadow-md border border-blue-100 p-3 max-w-xs">
+                <div className={`bg-white text-gray-800 rounded-r-2xl rounded-tl-md shadow-md border border-${primaryColor}-100 p-3 max-w-xs`}>
                   <div className="flex items-center gap-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className={`w-2 h-2 bg-${primaryColor}-400 rounded-full animate-bounce`}></div>
+                      <div className={`w-2 h-2 bg-${primaryColor}-400 rounded-full animate-bounce`} style={{animationDelay: '0.1s'}}></div>
+                      <div className={`w-2 h-2 bg-${primaryColor}-400 rounded-full animate-bounce`} style={{animationDelay: '0.2s'}}></div>
                     </div>
                     <span className="text-sm text-gray-500">AI is thinking...</span>
                   </div>
@@ -351,8 +384,8 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
           </div>
 
           {/* Input Box */}
-          <div className="p-4 bg-black border-t border-blue-200">
-            <div className="flex items-center gap-2 bg-black rounded-full shadow-sm border border-blue-200 focus-within:border-blue-400 focus-within:shadow-md transition-all duration-200">
+          <div className="p-4 bg-black border-t border-pink-200">
+            <div className={`flex items-center gap-2 bg-black rounded-full shadow-sm border border-${primaryColor}-200 focus-within:border-${primaryColor}-400 focus-within:shadow-md transition-all duration-200`}>
               <input
                 type="text"
                 className="flex-1 p-3 bg-black text-white outline-none placeholder-gray-400 rounded-l-full"
@@ -367,7 +400,7 @@ const ChatBot = ({ user_data = null, theme_card_color = "blue" }) => {
                 className={`p-3 rounded-full transition-all duration-200  ${
                   loading || input.trim() === ''
                     ? 'bg-black text-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600 transform hover:scale-105'
+                    : `bg-gradient-to-r from-${primaryColor}-500 to-${secondaryColor}-500 hover:from-${primaryColor}-600 hover:to-${secondaryColor}-600 transform hover:scale-105`
                 }`}
                 disabled={loading || input.trim() === ''}
               >

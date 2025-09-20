@@ -66,7 +66,7 @@ export default function SettingsPage() {
 
     try {
       const res = await fetch(
-        `http://127.0.0.1:8080/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
+        `https://insights-sih-tf-lva.fly.dev/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -74,7 +74,7 @@ export default function SettingsPage() {
       let userInfo;
       if (data.success) {
         try {
-          const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${linkedinId}`);
+          const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${linkedinId}`);
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           userInfo = await response.json();
         } catch (err) {
@@ -110,7 +110,7 @@ const handleRefreshGithubData = async () => {
 
   try {
     const res = await fetch(
-      `http://127.0.0.1:8080/refresh-github-data?github_id=${encodeURIComponent(githubId)}&userid=${encodeURIComponent(linkedinId)}`,  // Add linkedinId
+      `https://insights-sih-tf-lva.fly.dev/refresh-github-data?github_id=${encodeURIComponent(githubId)}&userid=${encodeURIComponent(linkedinId)}`,  // Add linkedinId
       { method: "POST" }
     );
     const data = await res.json();
@@ -145,7 +145,7 @@ const handleResumeUpload = async () => {
     formData.append('userid', linkedinId);
 
     const res = await fetch(
-      'http://127.0.0.1:8080/upload-resume',
+      'https://insights-sih-tf-lva.fly.dev/upload-resume',
       { 
         method: "POST",
         body: formData

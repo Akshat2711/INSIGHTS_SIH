@@ -56,7 +56,7 @@ function LoginCard({ onLogin }) {
       // ---  fetch from backend ---
       
         console.log("⏳ Fetching user info from backend...");
-        const response = await fetch(`http://127.0.0.1:8080/senduserinfo?userid=${linkedinId}`);
+        const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${linkedinId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
