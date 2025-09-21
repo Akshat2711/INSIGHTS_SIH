@@ -61,6 +61,7 @@ export default function SettingsPage() {
       localStorage.removeItem("insight_username");
       localStorage.removeItem("insight_user_info");
       localStorage.removeItem("linkedin_id");
+      localStorage.removeItem("github_id");
       window.location.href = "/login";
     } catch (error) {
       console.error("Logout error", error);

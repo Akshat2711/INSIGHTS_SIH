@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("insight_theme") === "dark");
+  const [darkMode, setDarkMode] = useState(true);//(localStorage.getItem("insight_theme") === "dark")for later currently reomved this as light mode is not there for all ui
   const navigate = useNavigate();
   const location = useLocation();
 

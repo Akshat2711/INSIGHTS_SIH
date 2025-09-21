@@ -65,6 +65,7 @@ function LoginCard({ onLogin }) {
       
 
       console.log("User Info:", userInfo);
+      localStorage.setItem("insight_theme","dark");
 
       navigate("/me");
     } catch (err) {
