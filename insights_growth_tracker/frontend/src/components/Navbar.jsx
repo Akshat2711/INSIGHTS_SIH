@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X, Home, User, BarChart3, Users, Settings, Search, ChevronDown } from "lucide-react";
+import { Menu, X, Home, User, BarChart3, Users, Settings, Search,Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Navbar = () => {
@@ -35,7 +35,7 @@ const Navbar = () => {
     { name: 'Me', href: '/me', icon: User },
     { name: 'Compare', href: '/compare', icon: BarChart3 },
     { name: 'Leaderboard', href: '/leaderboard', icon: Users },
-    { name: 'Suggestions', href: '/suggestions', icon: Search },
+    { name: 'Suggestions', href: '/suggestions', icon: Activity },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -52,7 +52,7 @@ const Navbar = () => {
   return (
     <>
       {/* Modern Glassmorphism Navbar */}
-      <nav className={`fixed top-8 left-1/2 transform -translate-x-1/2 max-w-6xl rounded-3xl shadow-2xl z-50 transition-all duration-300 ${
+      <nav className={`fixed top-8 left-1/2 transform -translate-x-1/2 max-w-6xl rounded-3xl shadow-2xl z-40 transition-all duration-300 ${
         scrolled 
           ? 'py-3 backdrop-blur-md bg-black/30 border-b border-white/10' 
           : 'py-4 backdrop-blur-sm bg-black/20 border-b border-white/5'
@@ -177,7 +177,7 @@ const Navbar = () => {
           ></div>
           
           {/* Mobile Menu Panel */}
-          <div className={`fixed top-0 right-0 h-full w-80 max-w-sm transform transition-transform duration-300 backdrop-blur-xl border-l ${
+          <div className={`fixed top-0 right-0 h-full w-80 max-w-sm transform transition-transform duration-300 backdrop-blur-xl border-l z-50${
             darkMode 
               ? 'bg-black/80 border-white/10' 
               : 'bg-white/80 border-black/10'

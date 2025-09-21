@@ -356,7 +356,7 @@ const CompleteProfile = () => {
       
 
       {/* Header */}
-      <div className="bg-white/[0.02] backdrop-blur-sm border-b border-gray-700/50 px-6 py-4 relative z-10">
+      <div className="bg-white/[0.02] backdrop-blur-sm border-b border-gray-700/50 px-6 py-4 relative z-10 mt-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center mt-20">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
@@ -366,20 +366,24 @@ const CompleteProfile = () => {
               Post {currentPostIndex + 1} of {posts.length} • {totalPoints} total points
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="bg-gray-800 rounded-full px-4 py-2">
-              <span className="text-cyan-400 font-semibold">
-                {Math.round(((currentPostIndex + 1) / posts.length) * 100)}%
-              </span>
+            <div className="flex flex-col sm:flex-row items-center sm:space-x-4 space-y-2 sm:space-y-0">
+              {/* Percentage Badge */}
+              <div className="bg-gray-800 rounded-full px-3 sm:px-4 py-1 sm:py-2">
+                <span className="text-sm sm:text-base text-cyan-400 font-semibold">
+                  {Math.round(((currentPostIndex + 1) / posts.length) * 100)}%
+                </span>
+              </div>
+
+              {/* Save & Exit Button */}
+              <button
+                onClick={handleSaveAndReturn}
+                className="bg-gray-800 hover:bg-gray-700 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-xl transition-colors duration-200 flex items-center justify-center"
+              >
+                <Save className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Save & Exit</span>
+              </button>
             </div>
-            <button
-              onClick={handleSaveAndReturn}
-              className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors duration-200"
-            >
-              <Save className="w-4 h-4 inline mr-2" />
-              Save & Exit
-            </button>
-          </div>
+
         </div>
       </div>
 

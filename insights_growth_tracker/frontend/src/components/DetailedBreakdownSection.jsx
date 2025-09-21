@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Trophy, BookOpen, ExternalLink } from 'lucide-react';
+import { Calendar, Trophy, BookOpen, ExternalLink,Heart,MessageCircle} from 'lucide-react';
 
 
 const DetailedBreakdownSection = ({ darkMode, safePostToNo, getTypeIcon }) => {
@@ -195,9 +195,18 @@ const DetailedBreakdownSection = ({ darkMode, safePostToNo, getTypeIcon }) => {
                                 : item?.timestamp || "No date"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span>❤️ {item?.reaction || 0}</span>
-                            <span>💬 {item?.comments || 0}</span>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-4 h-4 text-red-500" />
+                                  <span>{item?.reaction || 0}</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MessageCircle className="w-4 h-4 text-gray-500" />
+                                  <span>{item?.comments || 0}</span>
+                                </span>
+                            </div>
+
                           </div>
                         </div>
 

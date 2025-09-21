@@ -44,3 +44,21 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+
+/* Hide scrollbar for all browsers */
+
+/* Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+.hide-scrollbar {
+  scrollbar-width: none; /* "auto" or "thin" are default */
+}
+
+/* Edge, IE 10+ */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+}

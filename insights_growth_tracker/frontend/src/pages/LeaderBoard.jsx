@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Medal, Award, Info, Loader, AlertCircle, Trophy, Star, Zap, Target, Users, BookOpen, RefreshCw, Database, ChevronDown, ChevronUp, ExternalLink, ArrowRight, X, Code } from 'lucide-react';
+import { Crown, Medal, Award, Info, Loader, AlertCircle, Trophy, Star, Zap, Target, Users, BookOpen, RefreshCw, Database, ChevronDown, ChevronUp, ExternalLink, ArrowRight, X, Code, Heart, MessageCircle } from 'lucide-react';
 import Particles from '../components/Particles';
 
 const LeaderBoard = () => {
@@ -444,70 +444,27 @@ return (
 
     {/* Main Content */}
     <div className="relative z-10 pt-28 pb-16">
-      {/* Hero Header Section */}
-      <section className="px-8 mb-16 mt-8">
+    {/* Hero Header Section */}
+      <section className="px-6 sm:px-8 mb-12 mt-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-4 mb-6">
-              <div className={`p-4 rounded-3xl ${darkMode ? 'bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30' : 'bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-200'} backdrop-blur-xl`}>
-                <Crown className={`${darkMode ? "text-yellow-400" : "text-yellow-600"}`} size={40} />
-              </div>
+          {/* Title + Icon */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center p-4 rounded-3xl mb-6
+              bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-400/20 backdrop-blur-xl">
+              <Crown className="text-yellow-500" size={36} />
             </div>
-            <h1 className={`text-7xl font-black mb-6 ${darkMode ? 'bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400' : 'bg-gradient-to-r from-yellow-600 via-orange-600 to-red-600'} bg-clip-text text-transparent`}>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 bg-clip-text text-transparent mb-4">
               Champions
             </h1>
-            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Discover the top performers and track your journey to excellence
             </p>
-            <div className={`w-32 h-1 mx-auto mt-6 ${darkMode ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gradient-to-r from-yellow-600 to-orange-600'} rounded-full`}></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full mx-auto mt-6"></div>
           </div>
 
-          {/* Controls Bar */}
-          <div className={`rounded-3xl p-6 backdrop-blur-2xl border ${darkMode ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10' : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20'}`}>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl ${darkMode ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-yellow-100 border border-yellow-200'}`}>
-                  <Trophy className={`${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} size={20} />
-                  <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Live Rankings
-                  </span>
-                </div>
-                {isDataFromStorage && (
-                  <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/20' : 'text-cyan-700 bg-cyan-100 border border-cyan-200'} px-3 py-2 rounded-2xl`}>
-                    <Database size={16} />
-                    <span>Cached Data</span>
-                  </div>
-                )}
-                {lastRefresh && (
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} px-3 py-2`}>
-                    Updated: {new Date(lastRefresh).toLocaleTimeString()}
-                  </span>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={fetchAllUsersData}
-                  disabled={loading}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 ${loading ? (darkMode ? 'bg-gray-700 cursor-not-allowed text-gray-400' : 'bg-gray-300 cursor-not-allowed text-gray-500') : (darkMode ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105' : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg hover:shadow-emerald-400/30 hover:scale-105')}`}
-                >
-                  <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
-                  {loading ? 'Updating...' : 'Refresh'}
-                </button>
-                {allUsersData && (
-                  <button
-                    onClick={clearCachedData}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:shadow-lg hover:shadow-red-500/30' : 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:shadow-lg hover:shadow-red-400/30'}`}
-                  >
-                    <Database size={16} />
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
+
     {/* Status Messages */}
     {loading && (
       <section className="px-8">
@@ -567,31 +524,7 @@ return (
       <section className="px-8 mb-16">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-4 mb-6">
-              <div className={`p-4 rounded-3xl ${darkMode ? 'bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30' : 'bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200'} backdrop-blur-xl`}>
-                <Trophy className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={36} />
-              </div>
-            </div>
-            <h2 className={`text-5xl font-black mb-4 ${darkMode ? 'bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400' : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600'} bg-clip-text text-transparent`}>
-              Live Rankings
-            </h2>
-            <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
-              Real-time leaderboard showcasing top performers
-            </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl ${darkMode ? 'bg-purple-500/10 border border-purple-500/20 text-purple-300' : 'bg-purple-100 border border-purple-200 text-purple-700'}`}>
-                <Users size={16} />
-                <span className="font-semibold">{leaderboardData.filter(u => u.isReal).length} Real Users</span>
-              </div>
-              {isDataFromStorage && (
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl ${darkMode ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-300' : 'bg-cyan-100 border border-cyan-200 text-cyan-700'}`}>
-                  <Database size={16} />
-                  <span className="font-semibold">Cached Data</span>
-                </div>
-              )}
-            </div>
-          </div>
+ 
 
           {/* Top 3 Podium */}
           {leaderboardData.length >= 3 && (
@@ -663,110 +596,169 @@ return (
             </div>
           )}
 
+          
+
           {/* Full Rankings - Modern Card Layout */}
           <div className={`rounded-3xl backdrop-blur-2xl border overflow-hidden ${darkMode ? 'bg-gradient-to-br from-white/5 via-white/[0.02] to-white/5 border-white/10' : 'bg-gradient-to-br from-white/80 via-white/40 to-white/80 border-white/20'}`}>
             {/* Header */}
-            <div className={`p-6 border-b ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
-              <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Complete Rankings</h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>All participants ranked by performance</p>
+            <div className={`p-6 border-b flex sm:flex-row flex-col ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
+
+              <div >
+                <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Top Rankings</h3>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>participants ranked by performance</p>
+              </div>
+
+              {/* Compact Icon Buttons */}
+                  <div className="flex items-center gap-2 mt-4 sm:mt-0 sm:absolute sm:top-6 sm:right-6">
+                    {/* Refresh Button */}
+                    <button
+                      onClick={fetchAllUsersData}
+                      disabled={loading}
+                      className={`flex items-center justify-center w-9 h-9 rounded-full border text-gray-600 dark:text-gray-300 
+                        ${loading 
+                          ? "border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60" 
+                          : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-white/10"
+                        } transition`}
+                      title="Refresh"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                    </button>
+
+                    {/* Clear Button */}
+                    {allUsersData && (
+                      <button
+                        onClick={clearCachedData}
+                        className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 dark:border-gray-600
+                          text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition"
+                        title="Clear"
+                      >
+                        <Database className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
             </div>
             
             {/* Rankings Grid */}
-            <div className="p-6">
-              <div className="grid gap-4">
-                {leaderboardData.map((user, index) => (
-                  <div
-                    key={user.id}
-                    className={`rounded-2xl border p-6 transition-all duration-300 hover:scale-[1.01] cursor-pointer ${darkMode ? 'bg-white/[0.02] border-white/5 hover:border-purple-400/20' : 'bg-white/60 border-white/10 hover:border-purple-300/30'} backdrop-blur-sm ${user.isReal ? (darkMode ? 'border-l-4 border-l-purple-400' : 'border-l-4 border-l-purple-500') : ''}`}
-                    onMouseEnter={() => setHoveredUser(user.id)}
-                    onMouseLeave={() => setHoveredUser(null)}
-                  >
-                    <div className="flex items-center justify-between">
-                      {/* Left: Rank & User Info */}
-                      <div className="flex items-center gap-6">
-                        <div className="flex-shrink-0">
-                          {getRankIcon(user.rank)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</h4>
-                            {user.isReal && (
-                              <span className={`px-2 py-1 rounded-lg text-xs font-bold ${darkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-100 text-purple-700 border border-purple-200'}`}>
-                                Real
-                              </span>
-                            )}
-                          </div>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>@{user.userId}</p>
-                          
-                          {/* Key Stats Row */}
-                          <div className="flex items-center gap-4 text-sm">
-                            {user.hackathons !== 'NA' && user.hackathons > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Zap className="text-orange-500" size={14} />
-                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.hackathons}</span>
-                              </div>
-                            )}
-                            {user.certifications !== 'NA' && user.certifications > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Trophy className="text-blue-500" size={14} />
-                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.certifications}</span>
-                              </div>
-                            )}
-                            {user.projects !== 'NA' && user.projects > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Star className="text-purple-500" size={14} />
-                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.projects}</span>
-                              </div>
-                            )}
-                            {user.leadership !== 'NA' && user.leadership > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Users className="text-red-500" size={14} />
-                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.leadership}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Right: Points */}
-                      <div className="text-right">
-                        <div className={`text-3xl font-black mb-1 ${darkMode ? 'bg-gradient-to-r from-purple-400 to-indigo-400' : 'bg-gradient-to-r from-purple-600 to-indigo-600'} bg-clip-text text-transparent`}>
-                          {user.totalPoints}
-                        </div>
-                        <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Points</div>
-                      </div>
-                    </div>
-                    
-                    {/* Evidence - Expanded on Hover */}
-                    {hoveredUser === user.id && (
-                      <div className={`mt-4 pt-4 border-t transition-all duration-300 ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <Info size={16} className={`mt-0.5 flex-shrink-0 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-                            <div className="flex-1">
-                              <p className={`text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Achievement Summary:</p>
-                              <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                {user.evidence || 'No specific achievements recorded yet'}
-                              </p>
+              <div className="p-4 sm:p-6">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-7xl mx-auto">
+                  {leaderboardData.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`rounded-2xl border p-4 sm:p-6 transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
+                        darkMode
+                          ? 'bg-white/[0.02] border-white/5 hover:border-purple-400/20'
+                          : 'bg-white/60 border-white/10 hover:border-purple-300/30'
+                      } backdrop-blur-sm ${user.isReal ? (darkMode ? 'border-l-4 border-l-purple-400' : 'border-l-4 border-l-purple-500') : ''}`}
+                      onMouseEnter={() => setHoveredUser(user.id)}
+                      onMouseLeave={() => setHoveredUser(null)}
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        {/* Left: Rank & User Info */}
+                        <div className="flex flex-1 items-start sm:items-center gap-4 sm:gap-6 flex-wrap">
+                          <div className="flex-shrink-0">{getRankIcon(user.rank)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <h4 className={`text-lg font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {user.name}
+                              </h4>
+                              {user.isReal && (
+                                <span
+                                  className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                                    darkMode
+                                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                      : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                  }`}
+                                >
+                                  Real
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
+                              @{user.userId}
+                            </p>
+
+                            {/* Key Stats Row */}
+                            <div className="flex flex-wrap items-center gap-4 text-sm">
+                              {user.hackathons !== 'NA' && user.hackathons > 0 && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Zap className="text-orange-500" size={14} />
+                                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.hackathons}</span>
+                                </div>
+                              )}
+                              {user.certifications !== 'NA' && user.certifications > 0 && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Trophy className="text-blue-500" size={14} />
+                                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.certifications}</span>
+                                </div>
+                              )}
+                              {user.projects !== 'NA' && user.projects > 0 && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Star className="text-purple-500" size={14} />
+                                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.projects}</span>
+                                </div>
+                              )}
+                              {user.leadership !== 'NA' && user.leadership > 0 && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <Users className="text-red-500" size={14} />
+                                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.leadership}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedUserBreakdown(user.userId);
-                            }}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${darkMode ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border border-indigo-200'}`}
+                        </div>
+
+                        {/* Right: Points */}
+                        <div className="text-right flex-shrink-0">
+                          <div
+                            className={`text-3xl font-black mb-1 ${
+                              darkMode
+                                ? 'bg-gradient-to-r from-purple-400 to-indigo-400'
+                                : 'bg-gradient-to-r from-purple-600 to-indigo-600'
+                            } bg-clip-text text-transparent`}
                           >
-                            <Info size={14} />
-                            <span>View Breakdown</span>
-                          </button>
+                            {user.totalPoints}
+                          </div>
+                          <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Points</div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Evidence - Expanded on Hover */}
+                      {hoveredUser === user.id && (
+                        <div className={`mt-4 pt-4 border-t transition-all duration-300 ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <Info size={16} className={`mt-0.5 flex-shrink-0 ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold mb-1 truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                  Achievement Summary:
+                                </p>
+                                <p className={`text-sm text-wrap leading-relaxed truncate ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {user.evidence || 'No specific achievements recorded yet'}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedUserBreakdown(user.userId);
+                              }}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                                darkMode
+                                  ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30'
+                                  : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border border-indigo-200'
+                              }`}
+                            >
+                              <Info size={14} />
+                              <span>View Breakdown</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+
           </div>
         </div>
       </section>
@@ -840,128 +832,122 @@ return (
               </div>
               
               {/* Recent Activities - Enhanced with Expandable Content */}
-              {allUsersData && allUsersData.all_users[userid]?.original_scrapping && (
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h4 className={`font-bold flex items-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      <BookOpen className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} mr-2`} size={20} />
-                      Recent LinkedIn Activities:
-                    </h4>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-indigo-500/10 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
-                      {allUsersData.all_users[userid].original_scrapping.length} Total Posts
-                    </div>
+ {/* Recent Activities - Enhanced with Expandable Content */}
+{allUsersData && allUsersData.all_users[userid]?.original_scrapping && (
+  <div>
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+      <h4 className={`font-bold flex items-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+        <BookOpen className={`${darkMode ? 'text-indigo-400' : 'text-indigo-600'} mr-2`} size={20} />
+        Recent LinkedIn Activities:
+      </h4>
+      <div className={`px-3 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-indigo-500/10 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+        {allUsersData.all_users[userid].original_scrapping.length} Total Posts
+      </div>
+    </div>
+
+    {/* Activities Grid */}
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {allUsersData.all_users[userid].original_scrapping
+        .slice(0, showAllActivities ? allUsersData.all_users[userid].original_scrapping.length : 3)
+        .map((post, index) => (
+          <div 
+            key={index} 
+            className={`p-4 sm:p-6 rounded-2xl border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
+              darkMode 
+                ? 'bg-white/[0.02] border-white/5 hover:border-indigo-400/20' 
+                : 'bg-white/60 border-white/10 hover:border-indigo-300/30'
+            } backdrop-blur-sm`}
+            onClick={() => setExpandedActivity(expandedActivity === index ? null : index)}
+          >
+            {/* Post Preview */}
+            <div className={`${expandedActivity === index ? 'mb-4' : 'mb-3'} flex flex-col min-w-0`}>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} leading-relaxed text-sm ${expandedActivity === index ? '' : 'line-clamp-3 break-words'}`}>
+                {post.text}
+              </p>
+              
+              {/* Expand/Collapse Indicator */}
+              {post.text && post.text.length > 120 && (
+                <div className="flex items-center justify-center mt-2">
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
+                    darkMode 
+                      ? 'bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20' 
+                      : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                  }`}>
+                    {expandedActivity === index ? (
+                      <>
+                        <ChevronUp size={12} />
+                        <span>Show Less</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={12} />
+                        <span>Show More</span>
+                      </>
+                    )}
                   </div>
-                  
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {allUsersData.all_users[userid].original_scrapping
-                      .slice(0, showAllActivities ? allUsersData.all_users[userid].original_scrapping.length : 3)
-                      .map((post, index) => (
-                      <div 
-                        key={index} 
-                        className={`p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
-                          darkMode 
-                            ? 'bg-white/[0.02] border-white/5 hover:border-indigo-400/20' 
-                            : 'bg-white/60 border-white/10 hover:border-indigo-300/30'
-                        } backdrop-blur-sm`}
-                        onClick={() => setExpandedActivity(expandedActivity === index ? null : index)}
-                      >
-                        {/* Post Preview */}
-                        <div className={`${
-                          expandedActivity === index ? 'mb-4' : 'mb-3'
-                        }`}>
-                          <p className={`${
-                            darkMode ? 'text-gray-300' : 'text-gray-700'
-                          } leading-relaxed text-sm ${
-                            expandedActivity === index ? '' : 'line-clamp-3'
-                          }`}>
-                            {post.text}
-                          </p>
-                          
-                          {/* Expand/Collapse Indicator */}
-                          {post.text && post.text.length > 120 && (
-                            <div className="flex items-center justify-center mt-2">
-                              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                                darkMode 
-                                  ? 'bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20' 
-                                  : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                              }`}>
-                                {expandedActivity === index ? (
-                                  <>
-                                    <ChevronUp size={12} />
-                                    <span>Show Less</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDown size={12} />
-                                    <span>Show More</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Post Metadata */}
-                        <div className={`flex items-center justify-between text-xs ${
-                          darkMode ? 'text-gray-400' : 'text-gray-600'
-                        } pt-3 border-t ${
-                          darkMode ? 'border-white/5' : 'border-black/5'
-                        }`}>
-                          <div className="flex items-center gap-3">
-                            <span className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              {new Date(post.timestamp).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <span className="text-pink-500">❤️</span>
-                              {post.reactions || 0}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <span className="text-blue-500">💬</span>
-                              {post.comments || 0}
-                            </span>
-                          </div>
-                          
-                          {/* External Link */}
-                          <div className={`p-1 rounded-full transition-all duration-300 hover:scale-110 ${
-                            darkMode 
-                              ? 'hover:bg-indigo-500/10 text-indigo-400' 
-                              : 'hover:bg-indigo-100 text-indigo-600'
-                          }`}>
-                            <ExternalLink size={12} />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Show More/Less Button */}
-                  {allUsersData.all_users[userid].original_scrapping.length > 3 && (
-                    <div className="text-center mt-6">
-                      <button
-                        onClick={() => setShowAllActivities(!showAllActivities)}
-                        className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${
-                          darkMode 
-                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30' 
-                            : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-lg hover:shadow-indigo-400/30'
-                        }`}
-                      >
-                        {showAllActivities ? (
-                          <>
-                            <ChevronUp size={16} />
-                            <span>Show Less Activities</span>
-                          </>
-                        ) : (
-                          <>
-                            <ArrowRight size={16} />
-                            <span>View All {allUsersData.all_users[userid].original_scrapping.length} Activities</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
+            </div>
+            
+            {/* Post Metadata */}
+            <div className={`flex flex-wrap items-center justify-between text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} pt-3 border-t ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
+              <div className="flex flex-wrap items-center gap-3 min-w-0">
+                <span className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-pink-500"><Heart/></span>
+                  {post.reactions || 0}
+                </span>
+                <span className="flex items-center gap-1 flex-shrink-0">
+                  <span className="text-blue-500"><MessageCircle/></span>
+                  {post.comments || 0}
+                </span>
+              </div>
+              
+              {/* External Link */}
+                <div
+                  className={`p-1 sm:p-2 rounded-full mt-1 sm:mt-2 transition-all duration-300 hover:scale-110 flex-shrink-0 ${
+                    darkMode
+                      ? 'hover:bg-indigo-500/10 text-indigo-400'
+                      : 'hover:bg-indigo-100 text-indigo-600'
+                  }`}
+                >
+                  <ExternalLink size={16} className="sm:text-lg" />
+                </div>
+
+            </div>
+          </div>
+      ))}
+    </div>
+
+    {/* Show More/Less Button */}
+    {allUsersData.all_users[userid].original_scrapping.length > 3 && (
+      <div className="text-center mt-6">
+        <button
+          onClick={() => setShowAllActivities(!showAllActivities)}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${
+            darkMode 
+              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg hover:shadow-indigo-500/30' 
+              : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-lg hover:shadow-indigo-400/30'
+          }`}
+        >
+          {showAllActivities ? (
+            <>
+              <ChevronUp size={16} />
+              <span>Show Less Activities</span>
+            </>
+          ) : (
+            <>
+              <ArrowRight size={16} />
+              <span>View All {allUsersData.all_users[userid].original_scrapping.length} Activities</span>
+            </>
+          )}
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+              
             </div>
           </div>
         </div>
@@ -971,7 +957,7 @@ return (
     {/* Points Breakdown Modal */}
     {selectedUserBreakdown && allUsersData && allUsersData.all_users[selectedUserBreakdown] && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className={`max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-3xl backdrop-blur-2xl border ${darkMode ? 'bg-gradient-to-br from-gray-900/95 to-slate-900/95 border-white/10' : 'bg-gradient-to-br from-white/95 to-gray-50/95 border-black/10'}`}>
+        <div className={`max-w-4xl mt-32 w-full max-h-[90vh] overflow-y-auto hide-scrollbar rounded-3xl backdrop-blur-2xl border ${darkMode ? 'bg-gradient-to-br from-gray-900/95 to-slate-900/95 border-white/10' : 'bg-gradient-to-br from-white/95 to-gray-50/95 border-black/10'}`}>
           {/* Modal Header */}
           <div className={`p-6 border-b ${darkMode ? 'border-white/10' : 'border-black/10'}`}>
             <div className="flex items-center justify-between">

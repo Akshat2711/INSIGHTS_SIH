@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, User, Trophy, BookOpen, Calendar, Award, Code, Users, GraduationCap, Briefcase, Star, Database, Shield, FileText } from 'lucide-react';
+import { Search, User, Trophy, BookOpen, Calendar, Award, Code, Users, GraduationCap, Briefcase, Star, Database, Shield, FileText, BarChart3 } from 'lucide-react';
 import Particles from '../components/Particles';
 
 // Hoisted UI subcomponents (move out of CompareTab to avoid remounts on every render)
@@ -392,7 +392,7 @@ const processUserData = (data, userId) => {
                     ? 'bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30' 
                     : 'bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200'
                 } backdrop-blur-xl`}>
-                  <Search className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={36} />
+                  <BarChart3 className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={36} />
                 </div>
               </div>
               <h1 className={`text-6xl font-black mb-6 ${

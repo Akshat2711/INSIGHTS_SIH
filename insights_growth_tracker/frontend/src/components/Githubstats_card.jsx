@@ -1,5 +1,5 @@
 import {React,useState } from "react";
-import { ChevronDown, ExternalLink} from 'lucide-react';
+import { ChevronDown, ExternalLink,Star,Utensils } from 'lucide-react';
 
 
 
@@ -142,10 +142,10 @@ const primaryLanguages = githubData?.repositories?.reduce((acc, repo) => {
               </div>
               <div className="flex items-center gap-3">
                 <span className={`text-sm flex items-center gap-1 ${darkmode? 'text-gray-300' : 'text-gray-600'}`}>
-                  ⭐ {repo.total_stars}
+                  <Star/> {repo.total_stars}
                 </span>
                 <span className={`text-sm flex items-center gap-1 ${darkmode? 'text-gray-300' : 'text-gray-600'}`}>
-                  🔄 {repo.total_forks}
+                  <Utensils/> {repo.total_forks}
                 </span>
               </div>
             </div>

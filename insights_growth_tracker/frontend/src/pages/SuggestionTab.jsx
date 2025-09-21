@@ -229,7 +229,7 @@ const SuggestionTab = () => {
                   ? 'bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border border-cyan-500/30' 
                   : 'bg-gradient-to-r from-cyan-100 to-purple-100 border border-cyan-200'
               } backdrop-blur-xl`}>
-                <Brain className={`${darkMode ? "text-cyan-400" : "text-cyan-600"}`} size={36} />
+                <Activity className={`${darkMode ? "text-cyan-400" : "text-cyan-600"}`} size={36} />
               </div>
             </div>
             <h1 className={`text-6xl font-black mb-6 ${

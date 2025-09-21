@@ -154,7 +154,7 @@ export default function SearchInsights() {
                 </div>
               </div>
               <p className={`text-xl ${t.subText} font-medium max-w-3xl mx-auto mb-10 text-center`}>
-                Discover profiles and keywords with intelligent search powered by advanced analytics
+                Discover your friend's online presence with ease or recruite top talent using our powerful search tool.
               </p>
               
               {/* Login and Signup buttons - only shown when not authenticated */}
@@ -178,88 +178,102 @@ export default function SearchInsights() {
                 </div>
               </section>
 
-              {/* Search Interface */}
-              <div className="mb-16">
-                <form onSubmit={fetchResults} className="space-y-8">
-                <div className="relative w-full max-w-2xl mx-auto">
-                  <div className={`relative ${t.cardBg} rounded-2xl p-1 ${t.border} backdrop-blur-xl`}>
-                    <div className="flex">
-                      <div className="flex items-center pl-4">
-                        <Search className="w-6 h-6 text-purple-400" />
-                      </div>
-                      <input
-                        ref={inputRef}
-                        value={query}
-                        onChange={handleInputChange}
-                        placeholder={searchBy === "keyword" ? "Search by keywords (e.g., data science, react, AI)" : "Search by username or handle"}
-                        className={`flex-1 py-5 px-4 text-lg ${t.input} focus:outline-none bg-transparent`}
-                        autoComplete="off"
-                      />
-                      <button
-                        type="submit"
-                        disabled={loading || !query.trim()}
-                        className="px-8 py-5 rounded-xl text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                            <span>Searching...</span>
-                          </div>
-                        ) : (
-                          "Search"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Search Controls */}
-                <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-                  {/* Search Type Toggle */}
-                  <div className={`inline-flex rounded-2xl p-1 ${t.secondaryBg} border ${t.border} backdrop-blur-sm`}>
-                    <button
-                      type="button"
-                      onClick={() => setSearchBy("keyword")}
-                      className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                        searchBy === "keyword"
-                          ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
-                          : `${t.text} hover:bg-white/10`
-                      }`}
-                    >
-                      <Filter className="w-4 h-4 inline mr-2" />
-                      By Keyword
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSearchBy("user")}
-                      className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                        searchBy === "user"
-                          ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg"
-                          : `${t.text} hover:bg-white/10`
-                      }`}
-                    >
-                      <Users className="w-4 h-4 inline mr-2" />
-                      By User
-                    </button>
-                  </div>
+          {/* Search Interface */}
+          <div className="mb-16">
+            <form onSubmit={fetchResults} className="space-y-8">
+              {/* Search Bar */}
+              <div className="w-full max-w-3xl mx-auto">
+                <div
+            className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${t.cardBg} rounded-2xl p-2 ${t.border} backdrop-blur-xl`}
+          >
+            {/* Top row: Icon + Input */}
+            <div className="flex items-center flex-1 gap-2">
+              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400 flex-shrink-0 ml-2" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={handleInputChange}
+                placeholder={
+                  searchBy === "keyword"
+                    ? "Search by keywords (e.g., data science, react, AI)"
+                    : "Search by username or handle"
+                }
+                className={`flex-1 px-2 sm:px-4 py-3 sm:py-4 text-base sm:text-lg ${t.input} focus:outline-none bg-transparent`}
+                autoComplete="off"
+              />
+            </div>
 
-                  {/* Limit Input */}
-                  <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl ${t.secondaryBg} border ${t.border} backdrop-blur-sm`}>
-                    <TrendingUp className="w-5 h-5 text-purple-500" />
-                    <label className={`text-sm font-medium ${t.subText}`}>Show top</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={limit}
-                      onChange={(e) => setLimit(Number(e.target.value) || 1)}
-                      className={`w-16 text-center bg-transparent outline-none text-lg font-bold ${t.text}`}
-                    />
-                    <span className={`text-sm ${t.subText}`}>results</span>
-                  </div>
+            {/* Button: on small screens it goes to next line */}
+            <button
+              type="submit"
+              disabled={loading || !query.trim()}
+              className="w-full sm:w-auto px-5 sm:px-7 py-3 sm:py-4 rounded-xl text-sm sm:text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent"></div>
+                  <span className="hidden sm:inline">Searching...</span>
                 </div>
-                </form>
-              </div>
+              ) : (
+                "Search"
+              )}
+            </button>
+          </div>
+
+    </div>
+
+    {/* Search Controls */}
+    <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center justify-center">
+      {/* Search Type Toggle */}
+      <div
+        className={`flex flex-1 md:flex-none justify-center md:justify-start rounded-2xl p-1 ${t.secondaryBg} border ${t.border} backdrop-blur-sm`}
+      >
+        <button
+          type="button"
+          onClick={() => setSearchBy("keyword")}
+          className={`flex-1 md:flex-none px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            searchBy === "keyword"
+              ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg"
+              : `${t.text} hover:bg-white/10`
+          }`}
+        >
+          <Filter className="w-4 h-4 inline mr-2" />
+          By Keyword
+        </button>
+        <button
+          type="button"
+          onClick={() => setSearchBy("user")}
+          className={`flex-1 md:flex-none px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            searchBy === "user"
+              ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg"
+              : `${t.text} hover:bg-white/10`
+          }`}
+        >
+          <Users className="w-4 h-4 inline mr-2" />
+          By User
+        </button>
+      </div>
+
+      {/* Limit Input */}
+      <div
+        className={`flex items-center justify-center gap-3 px-6 py-3 rounded-2xl ${t.secondaryBg} border ${t.border} backdrop-blur-sm`}
+      >
+        <TrendingUp className="w-5 h-5 text-purple-500" />
+        <label className={`text-sm font-medium ${t.subText}`}>Show top</label>
+        <input
+          type="number"
+          min={1}
+          max={100}
+          value={limit}
+          onChange={(e) => setLimit(Number(e.target.value) || 1)}
+          className={`w-16 text-center bg-transparent outline-none text-lg font-bold ${t.text}`}
+        />
+        <span className={`text-sm ${t.subText}`}>results</span>
+      </div>
+    </div>
+  </form>
+</div>
+
 
               {/* Features Section */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
