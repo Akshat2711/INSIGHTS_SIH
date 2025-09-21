@@ -31,7 +31,7 @@ export default function SettingsPage() {
 
   // Check if services have data
   const hasLinkedInData = linkedinId ? true : false;
-  const hasGithubData = githubId ? true : false;
+  const hasGithubData = !!JSON.parse(localStorage.getItem("insight_user_info") || '{}')?.user_data?.github_data;
   const hasResumeData = !!JSON.parse(localStorage.getItem("insight_user_info") || '{}')?.user_data?.resume_data;
 
 
