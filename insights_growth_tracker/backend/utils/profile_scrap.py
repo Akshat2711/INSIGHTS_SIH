@@ -6,6 +6,12 @@ import json
 from dotenv import load_dotenv
 from pathlib import Path
 import datetime
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 load_dotenv()
 
@@ -91,36 +97,45 @@ class LinkedInScraper:
     async def ensure_login(self) -> bool:
         """Try cookies first, fallback to email/password login."""
         try:
+            # Log every navigation
+            self.page.on("framenavigated", lambda frame: logging.info(f"Navigated to: {frame.url}"))
+
             cookies = return_cookies()
             if cookies:
                 await self.context.add_cookies(cookies)
+
+            logging.info("-> Going to LinkedIn feed via cookies")
             await self.page.goto("https://www.linkedin.com/feed/", timeout=20000)
             await self.page.wait_for_selector("#global-nav", timeout=10000)
+
             if await self.page.locator('[data-test-id="nav-user-menu"]').count() > 0:
+                logging.info("-> Logged in via cookies")
                 return True
         except Exception as e:
-            print(f"-> Error during cookies login: {e}")
+            logging.error(f"-> Error during cookies login: {e}")
             await save_screenshot(self.page, "login_error")
 
         # fallback manual login
         try:
-            await self.page.goto("https://www.linkedin.com/login", timeout=20000)
+            logging.info("-> Going to LinkedIn login page for manual login")
+            await self.page.goto("https://www.linkedin.com/login", timeout=40000)
             if await self.page.locator("#username").count() > 0:
                 await self.page.fill("#username", linkedin_email)
             if await self.page.locator("#password").count() > 0:
                 await self.page.fill("#password", linkedin_pass)
             await self.page.click('button[type="submit"]')
-            await self.page.wait_for_load_state("networkidle", timeout=15000)
+            await self.page.wait_for_load_state("networkidle", timeout=30000)
 
             if await self.page.locator('[data-test-id="nav-user-menu"]').count() > 0:
+                logging.info("-> Logged in manually")
                 return True
             else:
-                print("-> Login may have failed (captcha/2FA?)")
+                logging.warning("-> Login may have failed (captcha/2FA?)")
                 await save_screenshot(self.page, "login_failed")
                 return False
 
         except Exception as e:
-            print(f"-> Login fallback error: {e}")
+            logging.error(f"-> Login fallback error: {e}")
             await save_screenshot(self.page, "login_exception")
             return False
 
