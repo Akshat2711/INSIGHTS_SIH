@@ -130,10 +130,10 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
 
         # Import and create scraper
         from utils.profile_scrap import LinkedInScraper
-        scraper = LinkedInScraper()
+        scraper = LinkedInScraper(headless=True)
+        posts = await scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
         
-        # Step 1: Scrape data using linkedin_api
-        posts = scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
+
         
         # Step 2: Save to Firestore
         if firestore_manager:
@@ -149,7 +149,7 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
         )
 
         # Step 4: Cleanup
-        scraper.cleanup()
+        await scraper.cleanup()
 
         return {"success": True, "message": "Data refreshed successfully"}
         

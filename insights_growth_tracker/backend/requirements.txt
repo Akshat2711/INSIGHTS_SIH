@@ -49,6 +49,7 @@ MarkupSafe==3.0.2
 msgpack==1.1.1
 orjson==3.11.2
 packaging==25.0
+playwright==1.54.0
 proto-plus==1.26.1
 protobuf==6.32.0
 pyasn1==0.6.1
