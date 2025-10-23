@@ -4,9 +4,6 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 import json
-import asyncio
-import threading
-import concurrent.futures
 import os
 import uvicorn
 import requests
@@ -18,6 +15,9 @@ from utils.score_updater import update_scores_for_role_changes, run_async
 import logging
 import firebase_admin
 from firebase_admin import credentials, firestore
+
+import asyncio
+import threading
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,6 +77,51 @@ firestore_manager = FirestoreUserManager(db) if db else None
 
 
 
+################for persisting browser login session for faster scraping################
+# Global persistent scraper
+scraper = None
+
+# Create background event loop
+def _start_background_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+_bg_loop = asyncio.new_event_loop()
+_bg_thread = threading.Thread(target=_start_background_loop, args=(_bg_loop,), daemon=True)
+_bg_thread.start()
+
+def run_async(coro, timeout: float = None):
+    """Run coroutine in the shared background loop."""
+    fut = asyncio.run_coroutine_threadsafe(coro, _bg_loop)
+    return fut.result(timeout)
+
+async def get_or_create_scraper():
+    global scraper
+    from utils.profile_scrap import LinkedInScraper
+    
+    if scraper is None:
+        scraper = LinkedInScraper(headless=True)
+        return scraper
+    
+    try:
+        if scraper.can_be_used_in_loop():
+            return scraper
+    except Exception:
+        pass
+    
+    try:
+        current_loop = asyncio.get_running_loop()
+        if getattr(scraper, "creation_loop", None) == current_loop:
+            await scraper.cleanup()
+    except Exception:
+        pass
+    
+    scraper = LinkedInScraper(headless=True)
+    return scraper
+###########################################################################################
+
+
+
 
 # Pydantic models for request bodies
 class UpdatePointsRequest(BaseModel):
@@ -128,10 +173,8 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
     try:
         logger.info(f"Started scrapping data for user: {userid}")
 
-        # Import and create scraper
-        from utils.profile_scrap import LinkedInScraper
-        scraper = LinkedInScraper(headless=True)
-        posts = await scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
+        current_scraper = await get_or_create_scraper()
+        posts = await current_scraper.scrape_profile_activity(f"https://www.linkedin.com/in/{userid}")
         
 
         
@@ -148,8 +191,7 @@ async def get_data_scrapper(userid: str = Query(..., description="User ID parame
             firestore_manager
         )
 
-        # Step 4: Cleanup
-        await scraper.cleanup()
+       
 
         return {"success": True, "message": "Data refreshed successfully"}
         
@@ -419,9 +461,13 @@ async def health_check():
 
 @app.post('/cleanup')
 async def cleanup_scraper():
-    """Cleanup endpoint - now just returns success since no persistent browser."""
-    return {"success": True, "message": "No persistent scraper to cleanup"}
-
+    """Cleanup scraper browser when needed."""
+    global scraper
+    if scraper:
+        await scraper.cleanup()
+        scraper = None
+        return {"success": True, "message": "Scraper cleaned up successfully"}
+    return {"success": True, "message": "No scraper to cleanup"}
 
 
 
@@ -433,7 +479,16 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Simplified shutdown - no browser cleanup needed."""
+    global scraper
+    try:
+        if scraper:
+            await scraper.cleanup()
+    except Exception:
+        pass
+    try:
+        _bg_loop.call_soon_threadsafe(_bg_loop.stop)
+    except Exception:
+        pass
     logger.info("Application shutting down")
 
 

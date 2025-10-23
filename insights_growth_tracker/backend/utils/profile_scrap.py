@@ -5,33 +5,15 @@ import sys
 import json
 from dotenv import load_dotenv
 from pathlib import Path
-import datetime
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 
 load_dotenv()
 
-linkedin_email = os.getenv("Linkedin_email")
-linkedin_pass = os.getenv("Linkedin_pass")
+linkedin_pass = os.getenv("Linkedin_pass", " ")
+linkedin_email = os.getenv("Linkedin_email", " ")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from credentials.cookies import return_cookies
 
-
-
-    
-async def save_screenshot(page, name="error"):
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = f"app/results/{name}_{timestamp}.png"
-    try:
-        await page.screenshot(path=path, full_page=True)
-        print(f"-> Screenshot saved: {path}")
-    except Exception as e:
-        print(f"-> Failed to save screenshot: {e}")
 
 class LinkedInScraper:
     def __init__(self, headless=False, proxy=None, max_scrolls=15, scroll_delay=1):
@@ -46,7 +28,6 @@ class LinkedInScraper:
         self.is_initialized = False
         # store the asyncio loop that created/started playwright/browser
         self.creation_loop = None
-
 
     async def launch_browser(self):
         launch_options = {
@@ -92,53 +73,44 @@ class LinkedInScraper:
         self.playwright = None
         self.creation_loop = None
 
-
-
     async def ensure_login(self) -> bool:
         """Try cookies first, fallback to email/password login."""
         try:
-            # Log every navigation
-            self.page.on("framenavigated", lambda frame: logging.info(f"Navigated to: {frame.url}"))
-
+            # try cookies first
             cookies = return_cookies()
             if cookies:
                 await self.context.add_cookies(cookies)
 
-            logging.info("-> Going to LinkedIn feed via cookies")
             await self.page.goto("https://www.linkedin.com/feed/", timeout=20000)
             await self.page.wait_for_selector("#global-nav", timeout=10000)
-
             if await self.page.locator('[data-test-id="nav-user-menu"]').count() > 0:
-                logging.info("-> Logged in via cookies")
                 return True
-        except Exception as e:
-            logging.error(f"-> Error during cookies login: {e}")
-            await save_screenshot(self.page, "login_error")
 
-        # fallback manual login
+        except Exception:
+            pass  # fall back
+
+        # --- fallback manual login ---
+        await self.page.goto("https://www.linkedin.com/login", timeout=20000)
+
         try:
-            logging.info("-> Going to LinkedIn login page for manual login")
-            await self.page.goto("https://www.linkedin.com/login", timeout=40000)
             if await self.page.locator("#username").count() > 0:
                 await self.page.fill("#username", linkedin_email)
             if await self.page.locator("#password").count() > 0:
                 await self.page.fill("#password", linkedin_pass)
-            await self.page.click('button[type="submit"]')
-            await self.page.wait_for_load_state("networkidle", timeout=30000)
 
+            await self.page.click('button[type="submit"]')
+            await self.page.wait_for_load_state("networkidle", timeout=15000)
+
+            # check again if logged in
             if await self.page.locator('[data-test-id="nav-user-menu"]').count() > 0:
-                logging.info("-> Logged in manually")
                 return True
             else:
-                logging.warning("-> Login may have failed (captcha/2FA?)")
-                await save_screenshot(self.page, "login_failed")
+                print("-> Login may have failed (captcha/2FA?)")
                 return False
 
         except Exception as e:
-            logging.error(f"-> Login fallback error: {e}")
-            await save_screenshot(self.page, "login_exception")
+            print(f"-> Login fallback error: {e}")
             return False
-
 
     async def auto_scroll(self):
         """Scroll until no new content loads or max_scrolls reached."""
@@ -189,7 +161,6 @@ class LinkedInScraper:
                 post_url: a('a[href*="/posts/"], a[href*="/activity:"]')
             };
         }""")
-    
     async def scrape_profile_activity(self, profile_url: str) -> list:
         try:
             # Always ensure browser is properly initialized
@@ -207,11 +178,10 @@ class LinkedInScraper:
             print(f"-> Found {len(containers)} post containers")
 
             posts_data = []
-            for idx, container in enumerate(containers, start=1):  # start IDs from 1
+            for idx, container in enumerate(containers):
                 try:
                     post_data = await self.extract_post_data(container)
                     if post_data.get('text') or post_data.get('images'):
-                        post_data["post_id"] = f"post_{idx}"   # <-- assign unique id here
                         posts_data.append(post_data)
                 except Exception as e:
                     print(f"-> Error processing post {idx}: {e}")
@@ -223,7 +193,6 @@ class LinkedInScraper:
             # Reset initialization flag on error
             self.is_initialized = False
             return []
-
     def can_be_used_in_loop(self) -> bool:
         """Return True if this scraper was created/started in current running loop and appears initialized."""
         try:
@@ -235,13 +204,11 @@ class LinkedInScraper:
         except RuntimeError:
             # no running loop -> cannot be used
             return False
-        
-   
 if __name__ == "__main__":
     async def test_scraper():
-        scraper = LinkedInScraper(headless=True)
+        scraper = LinkedInScraper(headless=False)
         try:
-            posts = await scraper.scrape_profile_activity("https://www.linkedin.com/in/gomathi--nayagam")
+            posts = await scraper.scrape_profile_activity("https://www.linkedin.com/in/punit173/")
             print(f"Found {len(posts)} posts")
         finally:
             await scraper.cleanup()

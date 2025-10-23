@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
     try {
       const res = await fetch(
-        `https://insights-sih-tf-lva.fly.dev/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
+        `https://api.inisights.space/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -82,11 +82,11 @@ export default function SettingsPage() {
       let userInfo;
       if (data.success) {
         try {
-          const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${linkedinId}`);
+          const response = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           userInfo = await response.json();
         } catch (err) {
-          console.error("Error fetching user info:", err);
+          console.error("Error fetching user info(try to login again :( ):", err);
         }
 
         if (userInfo && typeof userInfo === "object") {

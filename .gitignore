@@ -172,7 +172,6 @@ firebase-debug.*.log*
 .netlify
 
 # Credential files
-*.json
 backend_firestore_cred.json
 
 # Build outputs
