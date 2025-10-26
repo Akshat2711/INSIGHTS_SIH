@@ -54,8 +54,7 @@ class SRMPlacementScorer:
             raise ValueError("No original_scrapping data found in user data")
         
         posts = user_data["original_scrapping"]
-        role_of_user = user_data.get("role_of_user", {})
-        scored_data = self.run_scoring(posts, role_of_user)
+        scored_data = self.run_scoring(posts)
         return scored_data
 
     def _get_prompt_template(self) -> str:
@@ -63,30 +62,18 @@ class SRMPlacementScorer:
         You are an expert assistant helping automate achievement scoring for student placement evaluations.
     
         ### CONTEXT
-        You will be given:
-        1. A list of social media posts by a student (scraped from LinkedIn). These posts contain academic milestones, contests, internships, certifications, and projects.
-        2. A mapping called `role`, where the key is post_id and the value is the role described by the student in that post (if any).
-
-        Example:
-        {{"post_id":"software engineer intern"}}
+        You will be given a list of social media posts by a student (scraped from LinkedIn). These posts contain academic milestones, contests, internships, certifications, and projects.
 
         ### YOUR TASK
         From this data, extract and return a list of structured entries according to the SRM placement scoring system. Your output must be a JSON object where data is grouped by category (e.g., "hackathon", "internship", "certification", "project", "cgpa", etc.). For each item in a group, include:
         - Specific data like position, type, score range, etc.
-        - `points`: according to SRM placement matrix (adjusted based on role rule below)
-        - `why`: explain why those points were assigned giving some background (based on matrix rule and role rule)
+        - `points`: according to SRM placement matrix
+        - `why`: explain why those points were assigned giving some background based on the matrix rule
         - `source_post_index`: the index (0-based) of the post in the provided input list from which this entry was extracted. If an achievement is merged from multiple posts, provide a list of indices.
         - `source_post_excerpt`: a short excerpt (<=200 characters) or headline from the source post(s) that demonstrates the achievement (if available). Use a list if multiple posts are merged.
         - `timestamp`: the time the post was uploaded
         - `reaction`: number of reactions on the post
         - `comments`: number of comments on the post
-    
-        ### ROLE VALIDATION RULE
-        - For each post, check if there is an entry in the `role` mapping (matched via the post_id).
-        - If a **valid and relevant role** is provided, keep the assigned marks as per the placement matrix.
-        - If **no role** is provided, deduct **1 mark** from that achievement and clearly mention in `why` → *"Deducted 1 mark as role was not described in the post"*.
-        - If a **role is provided but is irrelevant/unrelated** to the post, do not award the actual marks. Mention in `why` → *"Role mentioned does not match the achievement, hence 1 mark deducted"*.
-        - When merging duplicates across posts, apply the role deduction/check individually and reflect the reasoning in the merged `why`.
 
         ### DEDUPLICATION RULE
         - If multiple posts describe the **same achievement**, merge them into a single entry. 
@@ -99,8 +86,8 @@ class SRMPlacementScorer:
             "hackathon": [
             {{
                 "position": "3",
-                "points": "2", 
-                "why": "Won 3rd position in Atos Hackathon = 3 marks, but deducted 1 mark as role was not described in the post",
+                "points": "3", 
+                "why": "Won 3rd position in Atos Hackathon = 3 marks as per placement matrix",
                 "timestamp": ["1 year ago", "10 months ago"],
                 "source_post_index": [0, 2],
                 "source_post_excerpt": ["Won 3rd place in Atos Hackathon", "Celebrating 3rd place in Atos event"],
@@ -112,7 +99,7 @@ class SRMPlacementScorer:
             {{
                 "type": "Web/Mobile App",
                 "points": "3",
-                "why": "Team project 'FINGINEE' is a web-based AI product = 3 Marks (role described: fullstack developer)",
+                "why": "Team project 'FINGINEE' is a web-based AI product = 3 Marks as per placement matrix",
                 "timestamp": ["2 months ago"],
                 "source_post_index": [5],
                 "source_post_excerpt": ["Launched FINGINEE: a web-based AI product"],
@@ -127,7 +114,6 @@ class SRMPlacementScorer:
         - Only include activities that can be mapped to the official scoring metrics.
         - Group similar events under the same key.
         - Merge duplicates across posts into one entry (see deduplication rule).
-        - Apply role validation when calculating `points`.
         - Do not infer anything that is not clearly stated.
         - If the information does not map to any scoring rule, ignore it.
         - You must refer to exact terms from the placement metrics.
@@ -137,9 +123,6 @@ class SRMPlacementScorer:
     
         ### INPUT DATA (LinkedIn Posts)
         {user_data}
-    
-        ### ROLE DATA
-        {role}
         """
 
     def load_post_data_from_firestore(self, user_data: dict) -> list:
@@ -148,37 +131,34 @@ class SRMPlacementScorer:
             raise ValueError("No original_scrapping data found in user data")
         return user_data["original_scrapping"]
 
-    def run_scoring(self, linkedin_posts: list, role_of_user: dict) -> dict:
+    def run_scoring(self, linkedin_posts: list) -> dict:
         # Clean the data first
         cleaned_posts = self.neccessary_tools._clean_post_data(linkedin_posts)
         
         print(f"Original posts: {len(linkedin_posts)}, Cleaned posts: {len(cleaned_posts)}")
         
         # Check if we need to chunk the data
-        if self.neccessary_tools._should_chunk_data(cleaned_posts, role_of_user):
+        if self.neccessary_tools._should_chunk_data(cleaned_posts):
             print("Data is large, processing in chunks...")
-            return self._process_in_chunks(cleaned_posts, role_of_user)
+            return self._process_in_chunks(cleaned_posts)
         else:
             print("Processing all data in single request...")
-            return self._process_single_batch(cleaned_posts, role_of_user)
+            return self._process_single_batch(cleaned_posts)
 
-    def _process_single_batch(self, posts: list, role_data: dict) -> dict:
+    def _process_single_batch(self, posts: list) -> dict:
         """Process all posts in a single batch."""
         prompt_str = self.prompt_template.format(
             scoring_metrics=json.dumps(self.scoring_metrics),
-            user_data=json.dumps(posts),
-            role=json.dumps(role_data)
+            user_data=json.dumps(posts)
         )
         
-
-
         messages = [HumanMessage(content=prompt_str)]
         response = self.llm.invoke(messages)
         output_text = response.content
         
         return self._parse_llm_output(output_text)
 
-    def _process_in_chunks(self, posts: list, role_data: dict) -> dict:
+    def _process_in_chunks(self, posts: list) -> dict:
         """Process posts in chunks and merge results."""
         chunks = self.neccessary_tools._chunk_posts(posts, chunk_size=10)
         print(f"Processing {len(chunks)} chunks...")
@@ -188,12 +168,8 @@ class SRMPlacementScorer:
         for i, chunk in enumerate(chunks):
             print(f"Processing chunk {i+1}/{len(chunks)} with {len(chunk)} posts...")
             
-            # Filter role data for this chunk
-            chunk_post_ids = {post['post_id'] for post in chunk}
-            chunk_role_data = {k: v for k, v in role_data.items() if k in chunk_post_ids}
-            
             try:
-                result = self._process_single_batch(chunk, chunk_role_data)
+                result = self._process_single_batch(chunk)
                 chunk_results.append(result)
             except Exception as e:
                 print(f"Error processing chunk {i+1}: {e}")
@@ -237,8 +213,7 @@ class SRMPlacementScorer:
 
     def process(self, combined_file: str, username: str) -> dict:
         posts = self.load_post_data_from_combined(combined_file, username)
-        role_of_user = self.load_role_data_from_combined(combined_file, username)  # add helper
-        scored_data = self.run_scoring(posts, role_of_user)
+        scored_data = self.run_scoring(posts)
         self.update_combined_file(combined_file, username, scored_data)
         return scored_data
 

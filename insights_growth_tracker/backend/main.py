@@ -10,7 +10,7 @@ import requests
 
 from utils.post_to_numbers import run_scoring_pipeline_firestore
 from utils.Firestore_db import FirestoreUserManager
-from utils.score_updater import update_scores_for_role_changes, run_async
+
 
 import logging
 import firebase_admin
@@ -229,56 +229,6 @@ async def get_leaderboard():
 
 
 
-
-
-# Route to update no. after role added/updated by user
-@app.post('/update_points')
-async def update_marks_for_role(request_data: UpdatePointsRequest):
-    try:
-        print("=== UPDATE POINTS REQUEST ===")
-        
-        # Get username and role data from request
-        username = request_data.username
-        role_data = request_data.roles
-        
-        print(f"Username: {username}")
-        print(f"Role data keys count: {len(role_data) if role_data else 0}")
-        
-        if not username:
-            raise HTTPException(status_code=400, detail="Username is required")
-            
-        if not firestore_manager:
-            raise HTTPException(status_code=500, detail="Firestore manager not initialized")
-            
-        print("Updating roles in Firestore...")
-        # Update role data in Firestore
-        success = firestore_manager.update_user_roles(username, role_data)
-        if not success:
-            print("Failed to update roles")
-            raise HTTPException(status_code=500, detail="Failed to update roles")
-        
-        print("Roles updated successfully, recalculating scores...")
-        # Use the efficient score update function instead of full pipeline
-        scored_data = run_async(update_scores_for_role_changes(
-            username=username,
-            updated_roles=role_data,
-            scoring_matrix_file=os.path.join(os.path.dirname(__file__), "ranking_criteria_metrics", "placement_ranking.json"),
-            firestore_manager=firestore_manager
-        ))
-        
-        print("Score update completed successfully")
-        return {
-            "message": "Points updated successfully",
-            "scored_data": scored_data
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"ERROR in update_marks_for_role: {str(e)}")
-        import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 

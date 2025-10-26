@@ -68,18 +68,16 @@ class POST_2_NO_TOOLS:
         """Rough estimation of token count (1 token ≈ 4 characters)"""
         return len(text) // 4
 
-    def _should_chunk_data(self, posts: list, role_data: dict, max_tokens: int = 10000) -> bool:
+    def _should_chunk_data(self, posts: list, max_tokens: int = 10000) -> bool:
         """
         Determine if data should be chunked based on estimated token count.
         """
-        # Estimate tokens for posts and role data
+        # Estimate tokens for posts and scoring metrics
         posts_text = json.dumps(posts)
-        role_text = json.dumps(role_data)
         scoring_text = json.dumps(self.scoring_metrics)
         
         total_tokens = (
             self._estimate_token_count(posts_text) + 
-            self._estimate_token_count(role_text) + 
             self._estimate_token_count(scoring_text) +
             2000  # Buffer for prompt template
         )
@@ -441,4 +439,4 @@ class POST_2_NO_TOOLS:
         # ENSURE points remain unchanged
         existing['points'] = original_points
         
-        print(f"  MERGED RESULT: {len(existing['source_post_index'])} posts, {existing['reaction']} reactions, {existing['points']} points")
+        print(f"  MERGED RESULT: {len(existing['source_post_index'])} posts, {existing.get('reactions', 0)} reactions, {existing['points']} points")

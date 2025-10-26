@@ -140,20 +140,7 @@ class FirestoreUserManager:
             return False
         
 
-        
-    def update_user_roles(self, user_id: str, role_data: dict) -> bool:
-        """Update user roles and refresh points if post_to_no exists."""
-        try:
-            existing_data = self.get_user_data(user_id) or {}
-            existing_data['role_of_user'] = role_data
-            
-            # Force recalc & save
-            return self.save_user_data(user_id, existing_data)
-
-        except Exception as e:
-            logger.error(f"Error updating user roles for {user_id}: {e}")
-            return False
-        
+    
 
 
 

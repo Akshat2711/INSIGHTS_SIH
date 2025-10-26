@@ -7,7 +7,6 @@ import LeaderBoard from "./pages/LeaderBoard";
 import CompareTab from "./pages/CompareTab";
 import SettingsPage from "./pages/SettingsPage";
 import SuggestionTab from "./pages/SuggestionTab";
-import CompleteProfile from "./pages/Complete_profile.jsx"
 import { useAuth } from "./auth/AuthContext.jsx"; 
 import PrivateRoute from "./auth/PrivateRoute.jsx";
 import "./App.css";
@@ -49,7 +48,6 @@ function AppWrapper() {
         <Route path="/search" element={<SearchInsights />} />
         <Route path="/searchresults" element={<PrivateRoute><SearchPageResults /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
-        <Route path="/complete-profile" element={<PrivateRoute><CompleteProfile /></PrivateRoute>} />
       </Routes>
     </>
   );

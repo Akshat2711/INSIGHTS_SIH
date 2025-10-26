@@ -380,13 +380,7 @@ export default function SettingsPage() {
                             </span>
                           </button>
 
-                          <button
-                            onClick={() => (window.location.href = "/complete-profile")}
-                            className="flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-r from-purple-600/40 to-pink-600/40 border-purple-400/60 text-white shadow-lg hover:shadow-purple-500/25"
-                          >
-                            <Edit3 size={18} />
-                            <span className="text-sm sm:text-base">Add Role</span>
-                          </button>
+             
                         </div>
                       </div>
 
