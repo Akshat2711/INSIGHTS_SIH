@@ -487,25 +487,17 @@ const SearchPageResults = () => {
                 </div>
                 <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 md:mb-8 font-semibold text-lg md:text-xl tracking-wide`}>Student at SRM University • Full Stack Developer</p>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4">
-                  <button className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 text-sm md:text-base">
+                  <button onClick={()=>{window.location.href=`https://www.linkedin.com/in/${userid}`}} className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 text-sm md:text-base">
                     <Linkedin className="w-4 h-4 md:w-5 md:h-5" />
                     <span className="hidden sm:inline">Connect on </span>LinkedIn
                   </button>
-                  <button className={`flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 ${
+                  <button onClick={()=>{window.location.href=`https://github.com/${userData["github_data"]["github_username"]}`}} className={`flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 ${
                     isDarkMode 
                       ? 'bg-gray-700/70 hover:bg-gray-600 text-white' 
                       : 'bg-gray-200/70 hover:bg-gray-300 text-gray-800'
-                  } rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 backdrop-blur-sm text-sm md:text-base`}>
+                  } rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 backdrop-blur-sm text-sm md:text-base`} >
                     <Github className="w-4 h-4 md:w-5 md:h-5" />
                     GitHub
-                  </button>
-                  <button className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 text-sm md:text-base">
-                    <FileText className="w-4 h-4 md:w-5 md:h-5" />
-                    Resume
-                  </button>
-                  <button className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white rounded-xl md:rounded-2xl transition-all duration-300 font-bold shadow-lg hover:shadow-2xl hover:scale-105 text-sm md:text-base">
-                    <Mail className="w-4 h-4 md:w-5 md:h-5" />
-                    Contact
                   </button>
                 </div>
               </div>

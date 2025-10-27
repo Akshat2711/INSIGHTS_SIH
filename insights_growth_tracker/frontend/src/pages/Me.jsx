@@ -414,7 +414,7 @@ const currentCGPA = resumeData?.data?.education?.[0]?.gpa || 'N/A';
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Fixed Particles Background - covering entire page */}
-      <div className="fixed inset-0 w-full h-full z-0">
+{/*       <div className="fixed inset-0 w-full h-full z-0">
         <Particles
           particleColors={['#ffffff', '#ffffff', '#ffffff']}
           particleCount={400}
@@ -428,7 +428,7 @@ const currentCGPA = resumeData?.data?.education?.[0]?.gpa || 'N/A';
           sizeRandomness={0.6}
           cameraDistance={20}
         />
-      </div>
+      </div> */}
       
       {/* Content Container */}
       <div className="relative z-10 space-y-4 pt-16">

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, User, Trophy, BookOpen, Calendar, Award, Code, Users, GraduationCap, Briefcase, Star, Database, Shield, FileText, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, User, Trophy, BookOpen, Calendar, Award, Code, Users, GraduationCap, Briefcase, Star, Database, Shield, FileText, BarChart3, ChevronRight } from 'lucide-react';
 import Particles from '../components/Particles';
 
 // Hoisted UI subcomponents (move out of CompareTab to avoid remounts on every render)
@@ -51,13 +51,12 @@ export const Input = (props) => {
   );
 };
 
-// Hoisted ComparisonCard (memoized). It now receives metrics, accents, accentKeys, other/current user data and num helper as props.
+// Hoisted ComparisonCard (memoized).
 export const ComparisonCard = React.memo(function ComparisonCard({
   user,
   isCurrentUser,
   metrics,
   accents,
-  accentKeys,
   otherUserData,
   currentUserData,
   num,
@@ -137,18 +136,18 @@ export const ComparisonCard = React.memo(function ComparisonCard({
 
 /**
  * CompareTab (Material-Neon Redesign)
- * - Modern dark fluorescent look inspired by Material Design
- * - Deep black surfaces, neon accents, soft elevation, rounded-2xl
- * - Accessible focus states, WCAG-friendly contrasts
  */
 const CompareTab = () => {
-  // Theme detection (controlled by state)
+  // Theme detection & setup
   const [darkMode, setDarkMode] = useState(
     (typeof window !== 'undefined') && localStorage.getItem('insight_theme') === 'dark'
   );
 
-  // Fix: Declare compareUserId, loading, error, currentUserData, otherUserData state at the top before any usage
-  const [compareUserId, setCompareUserId] = useState('');
+  // --- STATE FOR SEARCH WORKFLOW ---
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchResults, setSearchResults] = useState(null); // Stores results from /search-users-by-keyword
+
+  // State for comparison
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentUserData, setCurrentUserData] = useState(null);
@@ -175,11 +174,6 @@ const CompareTab = () => {
     violet: '#9B5CFF',    // violet
   }), []);
 
-  // Pick a primary accent and subtle gradient background
-  const accentKeys = Object.keys(accents);
-  const primaryAccent = accents.blue;
-  const secondaryAccent = accents.violet;
-
   // Update CSS variables and body background on theme change
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "rgb(0, 0, 0)" : "rgb(207, 207, 207)";
@@ -189,27 +183,13 @@ const CompareTab = () => {
   const currentUserId = (typeof window !== 'undefined' && localStorage.getItem('linkedin_id')) || 'punit173';
   const user_info = (typeof window !== 'undefined') ? JSON.parse(localStorage.getItem('insight_user_info')) || null : null;
 
-  // Fetch current user data on component mount
-  useEffect(() => {
-    const processedData = processUserData(user_info, currentUserId);
-    setCurrentUserData(processedData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // only for other user not for logged in user
-  const fetchUserData = async (userId, setUserState) => {
-    try {
-      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${userId}`);
-      if (!response.ok) throw new Error('User not found');
-      const data = await response.json();
-      const processedData = processUserData(data, userId);
-      setUserState(processedData);
-    } catch (err) {
-      console.error('Error fetching user data:', err);
-      throw new Error(`Failed to fetch data for user: ${userId}`);
-    }
+  // Safe numeric conversion for comparisons (handles "N.M.")
+  const num = (v) => {
+    if (v === null || v === undefined) return 0;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
   };
-
+  
   // Helper: format user id to presentable name
   const formatUserIdToName = (userId) => {
     if (!userId) return 'Unknown User';
@@ -219,121 +199,174 @@ const CompareTab = () => {
     return formatted || userId;
   };
 
-  // Safe numeric conversion for comparisons (handles "N.M.")
-  const num = (v) => {
-    if (v === null || v === undefined) return 0;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
+  const processUserData = (data, userId) => {
+    if (!data) return {
+      id: userId, name: formatUserIdToName(userId), cgpa: 'N.M.', hackathons: 0, internships: 0, certifications: 0, projects: 0,
+      inhouseProjects: 0, fsdProjects: 0, codingPlatform: 0, memberships: 0, assessments: 0, leadership: 0, researchPublications: 0,
+      posts: 0, totalPoints: 0, githubRepos: 0, githubStars: 0, githubForks: 0, githubFollowers: 0, workExperience: 0, 
+      volunteerExperience: 0, awardsRecognitions: 0,
+    };
+
+    const userData = data.user_data || {};
+    const postData = userData.post_to_no || {};
+    const githubData = userData.github_data || {};
+    const resumeData = userData.resume_data?.data || {};
+    const name = formatUserIdToName(userId);
+
+    // LinkedIn post data
+    const hackathons = postData.hackathon ? postData.hackathon.length : 0;
+    const certifications = postData.certification ? postData.certification.length : 0;
+    const projects = postData.project ? postData.project.length : 0;
+    const leadership = postData.leadership ? postData.leadership.length : 0;
+    const internships = postData.internship ? postData.internship.length : 0;
+    const inhouseProjects = postData.inhouse_project ? postData.inhouse_project.length : 0;
+    const fsdProjects = postData.fsd_project ? postData.fsd_project.length : 0;
+    const codingPlatform = postData.coding_platform ? postData.coding_platform.length : 0;
+    const memberships = postData.membership ? postData.membership.length : 0;
+    const assessments = postData.assessment ? postData.assessment.length : 0;
+    const researchPublications = postData.research_publications ? postData.research_publications.length : 0;
+
+    // GitHub metrics
+    const githubRepos = githubData.repositories ? githubData.repositories.length : 0;
+    const githubStars = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_stars || 0), 0) : 0;
+    const githubForks = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_forks || 0), 0) : 0;
+    const githubFollowers = githubData.profile?.followers || 0;
+
+    // Resume metrics
+    const workExperience = resumeData.work_experience ? resumeData.work_experience.length : 0;
+    const volunteerExperience = resumeData.volunteer_experience ? resumeData.volunteer_experience.length : 0;
+    const awardsRecognitions = resumeData.awards_and_recognitions ? resumeData.awards_and_recognitions.length : 0;
+
+    const cgpa = data.cgpa || resumeData.education?.[0]?.gpa || 'N.M.';
+    const totalPosts = userData.original_scrapping ? userData.original_scrapping.length : 0;
+
+    const totalPoints = [
+      ...(postData.hackathon || []),
+      ...(postData.certification || []),
+      ...(postData.project || []),
+      ...(postData.leadership || []),
+      ...(postData.internship || []),
+      ...(postData.inhouse_project || []),
+      ...(postData.fsd_project || []),
+      ...(postData.coding_platform || []),
+      ...(postData.membership || []),
+      ...(postData.assessment || []),
+      ...(postData.research_publications || []),
+    ].reduce((sum, item) => sum + parseInt(item.points || 0, 10), 0);
+
+    return {
+      id: userId,
+      name,
+      cgpa,
+      hackathons,
+      internships,
+      certifications,
+      projects,
+      inhouseProjects,
+      fsdProjects,
+      codingPlatform,
+      memberships,
+      assessments,
+      leadership,
+      researchPublications,
+      posts: totalPosts,
+      totalPoints,
+      // GitHub data
+      githubRepos,
+      githubStars,
+      githubForks,
+      githubFollowers,
+      // Resume data
+      workExperience,
+      volunteerExperience,
+      awardsRecognitions,
+    };
   };
 
+  // Fetch current user data on component mount
+  useEffect(() => {
+    const processedData = processUserData(user_info, currentUserId);
+    setCurrentUserData(processedData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // only for other user not for logged in user
+  const fetchUserData = useCallback(async (userId, setUserState) => {
+    try {
+      // NOTE: This is the existing fetch logic using the passed userId
+      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${userId}`);
+      if (!response.ok) throw new Error('User not found');
+      const data = await response.json();
+      const processedData = processUserData(data, userId);
+      setUserState(processedData);
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+      throw new Error(`Failed to fetch data for user: ${userId}`);
+    }
+  }, []);
 
+  // --- HANDLERS FOR NEW SEARCH WORKFLOW ---
 
-
-const processUserData = (data, userId) => {
-  if (!data) return {
-    id: userId, name: formatUserIdToName(userId), cgpa: 'N.M.', hackathons: 0, internships: 0, certifications: 0, projects: 0,
-    inhouseProjects: 0, fsdProjects: 0, codingPlatform: 0, memberships: 0, assessments: 0, leadership: 0, researchPublications: 0,
-    posts: 0, totalPoints: 0, githubRepos: 0, githubStars: 0, githubForks: 0, githubFollowers: 0, workExperience: 0, 
-    volunteerExperience: 0, awardsRecognitions: 0,
-  };
-
-  const userData = data.user_data || {};
-  const postData = userData.post_to_no || {};
-  const githubData = userData.github_data || {};
-  const resumeData = userData.resume_data?.data || {};
-  const name = formatUserIdToName(userId);
-
-  // LinkedIn post data
-  const hackathons = postData.hackathon ? postData.hackathon.length : 0;
-  const certifications = postData.certification ? postData.certification.length : 0;
-  const projects = postData.project ? postData.project.length : 0;
-  const leadership = postData.leadership ? postData.leadership.length : 0;
-  const internships = postData.internship ? postData.internship.length : 0;
-  const inhouseProjects = postData.inhouse_project ? postData.inhouse_project.length : 0;
-  const fsdProjects = postData.fsd_project ? postData.fsd_project.length : 0;
-  const codingPlatform = postData.coding_platform ? postData.coding_platform.length : 0;
-  const memberships = postData.membership ? postData.membership.length : 0;
-  const assessments = postData.assessment ? postData.assessment.length : 0;
-  const researchPublications = postData.research_publications ? postData.research_publications.length : 0;
-
-  // GitHub metrics
-  const githubRepos = githubData.repositories ? githubData.repositories.length : 0;
-  const githubStars = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_stars || 0), 0) : 0;
-  const githubForks = githubData.repositories ? githubData.repositories.reduce((sum, repo) => sum + (repo.total_forks || 0), 0) : 0;
-  const githubFollowers = githubData.profile?.followers || 0;
-
-  // Resume metrics
-  const workExperience = resumeData.work_experience ? resumeData.work_experience.length : 0;
-  const volunteerExperience = resumeData.volunteer_experience ? resumeData.volunteer_experience.length : 0;
-  const awardsRecognitions = resumeData.awards_and_recognitions ? resumeData.awards_and_recognitions.length : 0;
-
-  const cgpa = data.cgpa || resumeData.education?.[0]?.gpa || 'N.M.';
-  const totalPosts = userData.original_scrapping ? userData.original_scrapping.length : 0;
-
-  const totalPoints = [
-    ...(postData.hackathon || []),
-    ...(postData.certification || []),
-    ...(postData.project || []),
-    ...(postData.leadership || []),
-    ...(postData.internship || []),
-    ...(postData.inhouse_project || []),
-    ...(postData.fsd_project || []),
-    ...(postData.coding_platform || []),
-    ...(postData.membership || []),
-    ...(postData.assessment || []),
-    ...(postData.research_publications || []),
-  ].reduce((sum, item) => sum + parseInt(item.points || 0, 10), 0);
-
-  return {
-    id: userId,
-    name,
-    cgpa,
-    hackathons,
-    internships,
-    certifications,
-    projects,
-    inhouseProjects,
-    fsdProjects,
-    codingPlatform,
-    memberships,
-    assessments,
-    leadership,
-    researchPublications,
-    posts: totalPosts,
-    totalPoints,
-    // GitHub data
-    githubRepos,
-    githubStars,
-    githubForks,
-    githubFollowers,
-    // Resume data
-    workExperience,
-    volunteerExperience,
-    awardsRecognitions,
-  };
-};
-
-
-
-  const handleSearch = async () => {
-    if (!compareUserId.trim()) {
-      setError('Please enter a user ID');
+  const handleKeywordSearch = useCallback(async () => {
+    if (!searchKeyword.trim()) {
+      setError('Please enter a keyword to search for.');
+      setSearchResults(null);
       return;
     }
     setLoading(true);
     setError('');
-    setOtherUserData(null);
+    setOtherUserData(null); // Clear previous comparison
+    
     try {
-      await fetchUserData(compareUserId.trim(), setOtherUserData);
+      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/search-users-by-keyword?keyword=${encodeURIComponent(searchKeyword.trim())}&limit=5`);
+      
+      if (!response.ok) {
+        let errorMessage = 'Search failed.';
+        try {
+          const errData = await response.json();
+          errorMessage = errData.detail || errData.message || errorMessage;
+        } catch (e) {
+          const textBody = await response.text();
+          console.error("Non-JSON error response received:", textBody.substring(0, 100) + '...');
+          errorMessage = `Server Error (${response.status}): Received invalid response format.`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      setSearchResults(data);
+      
+      if (data.total_results === 0) {
+        setError(`No users found matching "${searchKeyword}"`);
+      }
+      
     } catch (err) {
       console.error('Search error:', err);
-      setError('User not found or error fetching data');
+      setError(err.message); 
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchKeyword]);
 
+  const handleCompareSelect = useCallback(async (userId) => {
+    setError('');
+    setLoading(true);
+    setSearchResults(null); // Hide results once a user is selected
+    setOtherUserData(null);
+    
+    try {
+      // FIX: The userId is passed directly to fetchUserData
+      await fetchUserData(userId, setOtherUserData); 
+    } catch (err) {
+      console.error('Comparison setup error:', err);
+      setError(err.message);
+      setOtherUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchUserData]);
+
+  // --- METRICS ARRAY (Same as before) ---
   const metrics = [
     { key: 'cgpa', label: 'CGPA', icon: GraduationCap },
     { key: 'hackathons', label: 'Hackathons', icon: Trophy },
@@ -358,105 +391,48 @@ const processUserData = (data, userId) => {
     { key: 'volunteerExperience', label: 'Volunteer Experience', icon: Users },
     { key: 'awardsRecognitions', label: 'Awards & Recognitions', icon: Award }
   ];
+  
+  // --- Conditional Rendering Logic ---
+  const renderComparisonSection = () => {
+    if (!currentUserData) {
+        return (
+            <Surface className="p-12 text-center">
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${darkMode ? 'border-purple-400' : 'border-purple-600'} mx-auto mb-4`}></div>
+                <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Loading your profile…</h3>
+                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Please wait while we fetch your data</p>
+            </Surface>
+        );
+    }
 
-  return (
-    <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
-      {/* Fixed Particles Background - covering entire page */}
-      <div className="fixed inset-0 w-full h-full z-0">
-        <Particles
-          particleColors={['#ffffff', '#ffffff', '#ffffff']}
-          particleCount={300}
-          particleSpread={15}
-          speed={0.1}
-          particleBaseSize={150}
-          moveParticlesOnHover={true}
-          alphaParticles={false}
-          disableRotation={false}
-          particleHoverFactor={0.5}
-          sizeRandomness={0.8}
-          cameraDistance={25}
-        />
-      </div>
-      
-      {/* Main Content */}
-      <div className="relative z-10 pt-16 pb-16">
-        <div className="space-y-6 mt-16 font-[Inter,Roboto,system-ui,sans-serif]">
-          <div className="max-w-6xl mx-auto space-y-6 px-4">
-        {/* Hero Header Section */}
-        <section className="px-8 mb-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-4 mb-6">
-                <div className={`p-4 rounded-3xl ${
-                  darkMode 
-                    ? 'bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30' 
-                    : 'bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200'
-                } backdrop-blur-xl`}>
-                  <BarChart3 className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={36} />
-                </div>
-              </div>
-              <h1 className={`text-6xl font-black mb-6 ${
-                darkMode 
-                  ? 'bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400' 
-                  : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600'
-              } bg-clip-text text-transparent`}>
-                Compare
-              </h1>
-              <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
-                Compare your professional progress with peers and discover growth opportunities
-              </p>
-              <div className={`w-32 h-1 mx-auto mt-6 ${
-                darkMode 
-                  ? 'bg-gradient-to-r from-purple-400 to-indigo-400' 
-                  : 'bg-gradient-to-r from-purple-600 to-indigo-600'
-              } rounded-full`}></div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Search Section */}
-        <Surface className="p-4 sm:p-6">
-          <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4 tracking-tight`}>Compare with Peer</h2>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 ">
-              <Input
-                type="text"
-                placeholder="Enter LinkedIn user ID (e.g., john-doe-123456789)"
-                value={compareUserId}
-                onChange={(e) => setCompareUserId(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                disabled={loading}
-                aria-label="LinkedIn user ID"
-              />
-            </div>
-            <FluoroButton onClick={handleSearch} disabled={loading || !currentUserData} aria-label="Compare">
-              <Search size={16} className="mr-2" />
-              {loading ? 'Searching…' : 'Compare'}
+    if (loading) {
+        return (
+            <Surface className="p-12 text-center">
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${darkMode ? 'border-purple-400' : 'border-purple-600'} mx-auto mb-4`}></div>
+                <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                    {searchResults ? 'Searching for peers...' : 'Fetching peer data for comparison...'}
+                </h3>
+                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>This may take a moment.</p>
+            </Surface>
+        );
+    }
+    
+    if (otherUserData) {
+      // --- Display Final Comparison Cards (Comparison View) ---
+      return (
+        <div className="space-y-4">
+            <FluoroButton 
+                onClick={() => setOtherUserData(null)}
+                className="!py-2 !px-4 text-sm"
+                >
+                <ChevronRight size={16} className="rotate-180 mr-2" />
+                Back to Search
             </FluoroButton>
-          </div>
-          {error && <div className="mt-3 text-red-400 text-sm">{error}</div>}
-        </Surface>
-
-        {/* Loading State */}
-        {!currentUserData && (
-          <Surface className="p-12 text-center">
-            <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${darkMode ? 'border-purple-400' : 'border-purple-600'} mx-auto mb-4`}></div>
-            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Loading your profile…</h3>
-            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Please wait while we fetch your data</p>
-          </Surface>
-        )}
-
-        {/* Comparison Section */}
-        {otherUserData && currentUserData ? (
-          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* updated: pass metrics, accents, accentKeys, other/current data and num helper */}
               <ComparisonCard
                 user={currentUserData}
                 isCurrentUser={true}
                 metrics={metrics}
                 accents={accents}
-                accentKeys={accentKeys}
                 otherUserData={otherUserData}
                 currentUserData={currentUserData}
                 num={num}
@@ -466,7 +442,6 @@ const processUserData = (data, userId) => {
                 isCurrentUser={false}
                 metrics={metrics}
                 accents={accents}
-                accentKeys={accentKeys}
                 otherUserData={otherUserData}
                 currentUserData={currentUserData}
                 num={num}
@@ -517,20 +492,150 @@ const processUserData = (data, userId) => {
                 </div>
               </div>
             </Surface>
+        </div>
+      );
+    }
+    
+    if (searchResults && searchResults.top_users && searchResults.top_users.length > 0) {
+      // --- Display Search Results ---
+      return (
+        <Surface className="p-4 sm:p-6">
+          <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4 tracking-tight`}>
+            Top {searchResults.top_users.length} Results for "{searchResults.keyword}"
+          </h2>
+          <div className="space-y-3">
+            {searchResults.top_users.map(user => (
+              <div 
+                key={user.user_id} 
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${
+                    darkMode ? 'bg-white/5 hover:bg-white/10 border-gray-700' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                }`}
+              >
+                <div className="flex-1 min-w-0 mr-4">
+                  <p className={`font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    ID: {user.user_id} | Points: <span className="font-semibold text-purple-500">{user.totalPoints}</span> | Keyword Count: {user.keyword_occurrences}
+                  </p>
+                  {/* Optional: Show sample matches if available */}
+                  {user.sample_matches && user.sample_matches.length > 0 && (
+                      <p className={`text-xs italic mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          Found in: {user.sample_matches.slice(0, 2).join(', ')}{user.sample_matches.length > 2 ? '...' : ''}
+                      </p>
+                  )}
+                </div>
+                <FluoroButton 
+                  onClick={() => handleCompareSelect(user.user_id)}
+                  className="!py-2 !px-4 text-sm"
+                  disabled={loading}
+                >
+                  <ChevronRight size={16} className="mr-2" />
+                  Compare
+                </FluoroButton>
+              </div>
+            ))}
           </div>
-        ) : currentUserData && !loading ? (
-          <Surface className="p-12 text-center">
-            <User size={48} className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+          <p className={`mt-4 text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Showing top {searchResults.top_users.length} results.
+          </p>
+        </Surface>
+      );
+    }
+    
+    // --- Initial State / No Search Performed / No Results Found ---
+    return (
+        <Surface className="p-12 text-center">
+            <Users size={48} className={`mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
             <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>Ready to Compare</h3>
-            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Enter a LinkedIn user ID above to start comparing your professional progress</p>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Enter a keyword (e.g., "React", "Machine Learning", "Internship") to find profiles to compare against.</p>
             <div className={`mt-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <p>Your current stats:</p>
               <p>
-                Total Points: <span className={`font-semibold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{currentUserData.totalPoints}</span>
+                Total Points: <span className={`font-semibold ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{currentUserData?.totalPoints || 0}</span>
               </p>
             </div>
-          </Surface>
-        ) : null}
+        </Surface>
+    );
+  };
+
+
+  return (
+    <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
+      {/* Fixed Particles Background */}
+{/*       <div className="fixed inset-0 w-full h-full z-0">
+        <Particles
+          particleColors={['#ffffff', '#ffffff', '#ffffff']}
+          particleCount={300}
+          particleSpread={15}
+          speed={0.1}
+          particleBaseSize={150}
+          moveParticlesOnHover={true}
+          alphaParticles={false}
+          disableRotation={false}
+          particleHoverFactor={0.5}
+          sizeRandomness={0.8}
+          cameraDistance={25}
+        />
+      </div> */}
+      
+      {/* Main Content */}
+      <div className="relative z-10 pt-16 pb-16">
+        <div className="space-y-6 mt-16 font-[Inter,Roboto,system-ui,sans-serif]">
+          <div className="max-w-6xl mx-auto space-y-6 px-4">
+            {/* Hero Header Section */}
+            <section className="px-8 mb-12">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-12">
+                  <div className={`p-4 rounded-3xl inline-flex items-center gap-4 mb-6 ${
+                    darkMode 
+                      ? 'bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30' 
+                      : 'bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200'
+                  } backdrop-blur-xl`}>
+                    <BarChart3 className={`${darkMode ? "text-purple-400" : "text-purple-600"}`} size={36} />
+                  </div>
+                  <h1 className={`text-6xl font-black mb-6 ${
+                    darkMode 
+                      ? 'bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400' 
+                      : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600'
+                  } bg-clip-text text-transparent`}>
+                    Compare
+                  </h1>
+                  <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+                    Compare your professional progress with peers and discover growth opportunities
+                  </p>
+                  <div className={`w-32 h-1 mx-auto mt-6 ${
+                    darkMode 
+                      ? 'bg-gradient-to-r from-purple-400 to-indigo-400' 
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600'
+                  } rounded-full`}></div>
+                </div>
+              </div>
+            </section>
+            
+            {/* NEW Search Section */}
+            <Surface className="p-4 sm:p-6">
+              <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4 tracking-tight`}>Find a Peer to Compare</h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 ">
+                  <Input
+                    type="text"
+                    placeholder="Search your peers by keyword (e.g. 'Akshat', 'Punit')"
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleKeywordSearch()}
+                    disabled={loading}
+                    aria-label="Search keyword"
+                  />
+                </div>
+                <FluoroButton onClick={handleKeywordSearch} disabled={loading || !currentUserData || !searchKeyword.trim()} aria-label="Search">
+                  <Search size={16} className="mr-2" />
+                  {loading ? 'Searching…' : 'Search'}
+                </FluoroButton>
+              </div>
+              {error && <div className="mt-3 text-red-400 text-sm">{error}</div>}
+            </Surface>
+
+            {/* Render Results or Comparison */}
+            {renderComparisonSection()}
           </div>
         </div>
       </div>

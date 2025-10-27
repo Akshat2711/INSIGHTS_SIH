@@ -75,7 +75,7 @@ class FirestoreUserManager:
         """Get all users sorted by total_points in descending order."""
         try:
             # Query users ordered by total_points (descending)
-            users_ref = self.db.collection(self.collection_name).order_by('total_points', direction=firestore.Query.DESCENDING).limit(10)#to limit how many users we want to fetch
+            users_ref = self.db.collection(self.collection_name).order_by('total_points', direction=firestore.Query.DESCENDING).limit(50)#to limit how many users we want to fetch
             docs = users_ref.stream()
             
             sorted_users = {}

@@ -11,7 +11,7 @@ const LeaderBoard = () => {
   const [isDataFromStorage, setIsDataFromStorage] = useState(false);
   const [allUsersData, setAllUsersData] = useState(null);
 
-  // Default user ID other(punit173,akshat-srivastava-5a52b1240,utkarshdubey608,devanshi-karaulia-469b37287)
+  // Default user ID
   const linkedinId = localStorage.getItem('linkedin_id') || 'mayank-rai-907079217';
   const [userid, setuserid] = useState(linkedinId);
 
@@ -68,122 +68,10 @@ const LeaderBoard = () => {
     setIsDataFromStorage(data);
   } 
 
-
-
-
+  //////////////////////////////////////////////
+  // REMOVED: calculatePointsFromData function as requested.
   //////////////////////////////////////////////
 
-  // Function to calculate points from real data - FIXED to include ALL categories
-  const calculatePointsFromData = (postData) => {
-    if (!postData) return { 
-      totalPoints: 0, 
-      hackathons: 'NA', 
-      certifications: 'NA', 
-      leadership: 'NA', 
-      projects: 'NA', 
-      internships: 'NA', 
-      inhouse_projects: 'NA', 
-      fsd_projects: 'NA', 
-      coding_platforms: 'NA', 
-      memberships: 'NA', 
-      assessments: 'NA', 
-      research_publications: 'NA',
-      cgpa: 'NA'
-    };
-    
-    let totalPoints = 0;
-    let stats = {
-      hackathons: 'NA',
-      certifications: 'NA',
-      leadership: 'NA',
-      projects: 'NA',
-      internships: 'NA',
-      inhouse_projects: 'NA',
-      fsd_projects: 'NA',
-      coding_platforms: 'NA',
-      memberships: 'NA',
-      assessments: 'NA',
-      research_publications: 'NA',
-      cgpa: 'NA'
-    };
-
-    // Define all categories to process
-    const categories = [
-      'hackathon',
-      'certification', 
-      'leadership',
-      'project',
-      'internship',
-      'inhouse_project',
-      'fsd_project',
-      'coding_platform',
-      'membership',
-      'assessment',
-      'research_publications'
-    ];
-
-    // Helper function to safely extract points from an item
-    const extractPoints = (item) => {
-      if (!item) return 0;
-      
-      // If item is a simple number or string, return it
-      if (typeof item === 'number') return item;
-      if (typeof item === 'string' && !isNaN(parseInt(item))) return parseInt(item);
-      
-      // If item is an object, try to extract points
-      if (typeof item === 'object') {
-        const points = item.points || item.point || item.score || 0;
-        return typeof points === 'number' ? points : (typeof points === 'string' && !isNaN(parseInt(points))) ? parseInt(points) : 0;
-      }
-      
-      return 0;
-    };
-
-    // Process each category
-    categories.forEach(category => {
-      try {
-        if (postData[category] && Array.isArray(postData[category]) && postData[category].length > 0) {
-          // Map category names to stats object keys
-          const statKey = category === 'hackathon' ? 'hackathons' :
-                         category === 'certification' ? 'certifications' :
-                         category === 'project' ? 'projects' :
-                         category === 'internship' ? 'internships' :
-                         category === 'inhouse_project' ? 'inhouse_projects' :
-                         category === 'fsd_project' ? 'fsd_projects' :
-                         category === 'coding_platform' ? 'coding_platforms' :
-                         category === 'membership' ? 'memberships' :
-                         category === 'assessment' ? 'assessments' :
-                         category;
-
-          stats[statKey] = postData[category].length;
-          
-          // Safely calculate total points for this category
-          const categoryPoints = postData[category].reduce((sum, item) => {
-            return sum + extractPoints(item);
-          }, 0);
-          
-          totalPoints += categoryPoints;
-        }
-      } catch (error) {
-        console.warn(`Error processing category ${category}:`, error);
-        // Continue processing other categories
-      }
-    });
-
-    // Handle CGPA separately if it exists in the data
-    if (postData.cgpa !== undefined && postData.cgpa !== null && !isNaN(parseFloat(postData.cgpa))) {
-      stats.cgpa = parseFloat(postData.cgpa);
-    }
-
-    // Set other categories to 0 if we have some data, otherwise keep as 'NA'
-    if (totalPoints > 0) {
-      Object.keys(stats).forEach(key => {
-        if (stats[key] === 'NA' && key !== 'cgpa') stats[key] = 0;
-      });
-    }
-
-    return { totalPoints, ...stats };
-  };
 
   // Manually triggered fetch function
   const fetchAllUsersData = async () => {
@@ -226,7 +114,7 @@ const LeaderBoard = () => {
     setIsDataFromStorage(false);
   };
 
-  // Function to calculate detailed points breakdown for a user
+  // Function to calculate detailed points breakdown for a user (KEPT for user performance component)
   const calculateDetailedPointsBreakdown = (userData) => {
     if (!userData || !userData.post_to_no) return { categories: [], totalPoints: 0 };
     
@@ -250,15 +138,13 @@ const LeaderBoard = () => {
       research_publications: { name: 'Research Publications', icon: 'BookOpen', color: 'emerald' }
     };
     
-    // Helper function to safely extract points from an item (same as original)
+    // Helper function to safely extract points from an item
     const extractPoints = (item) => {
       if (!item) return 0;
       
-      // If item is a simple number or string, return it
       if (typeof item === 'number') return item;
       if (typeof item === 'string' && !isNaN(parseInt(item))) return parseInt(item);
       
-      // If item is an object, try to extract points
       if (typeof item === 'object') {
         const points = item.points || item.point || item.score || 0;
         return typeof points === 'number' ? points : (typeof points === 'string' && !isNaN(parseInt(points))) ? parseInt(points) : 0;
@@ -300,64 +186,84 @@ const LeaderBoard = () => {
   const formatUserIdToName = (userId) => {
     if (!userId) return 'Unknown User';
     
-    // Convert user ID to a more readable format
-    // e.g., "mayank-rai-907079217" becomes "Mayank Rai"
     const parts = userId.split('-');
     const nameParts = parts.filter(part => isNaN(parseInt(part))); // Remove numeric parts
     
-    // Capitalize each part
     const formattedName = nameParts
       .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
     
-    return formattedName || userId; // Fallback to original userId if no valid parts
+    return formattedName || userId; 
   };
 
-  // leaderboard data with real users
+  // MODIFIED: Generate leaderboard data using stored/fetched totalPoints
   const generateLeaderboardData = () => {
     if (!allUsersData || !allUsersData.all_users) return [];
 
     const realUsers = [];
     const userEntries = Object.entries(allUsersData.all_users);
 
-    // Process real users
     userEntries.forEach(([userId, userData], index) => {
-      const userStats = calculatePointsFromData(userData.post_to_no);
       
-      // Use formatted name instead of trying to extract from posts
+      // *** LOGIC CHANGE: Use pre-calculated totalPoints from userData ***
+      const totalPoints = userData.total_points || 0; // ASSUMES userData has a 'totalPoints' field
+
+      const postData = userData.post_to_no || {};
+      
+      // Helper to get count or 'NA'
+      const getCount = (key) => (Array.isArray(postData[key]) && postData[key].length > 0) ? postData[key].length : 'NA';
+      const getCgpa = postData.cgpa !== undefined && postData.cgpa !== null && !isNaN(parseFloat(postData.cgpa)) ? parseFloat(postData.cgpa) : 'NA';
+
+      const hackathons = getCount('hackathon');
+      const certifications = getCount('certification');
+      const leadership = getCount('leadership');
+      const projects = getCount('project');
+      const internships = getCount('internship');
+      const inhouse_projects = getCount('inhouse_project');
+      const fsd_projects = getCount('fsd_project');
+      const coding_platforms = getCount('coding_platform');
+      const memberships = getCount('membership');
+      const assessments = getCount('assessment');
+      const research_publications = getCount('research_publications');
+
       const profileName = formatUserIdToName(userId);
 
       realUsers.push({
         id: index + 1,
         userId: userId,
-        name: profileName, // Use formatted name
-        cgpa: userStats.cgpa,
-        hackathons: userStats.hackathons,
-        internships: userStats.internships,
-        certifications: userStats.certifications,
-        projects: userStats.projects,
-        inhouse_projects: userStats.inhouse_projects,
-        fsd_projects: userStats.fsd_projects,
-        coding_platforms: userStats.coding_platforms,
-        memberships: userStats.memberships,
-        assessments: userStats.assessments,
-        leadership: userStats.leadership,
-        research_publications: userStats.research_publications,
+        name: profileName, 
+        cgpa: getCgpa,
+        hackathons: hackathons,
+        internships: internships,
+        certifications: certifications,
+        projects: projects,
+        inhouse_projects: inhouse_projects,
+        fsd_projects: fsd_projects,
+        coding_platforms: coding_platforms,
+        memberships: memberships,
+        assessments: assessments,
+        leadership: leadership,
+        research_publications: research_publications,
         posts: userData.original_scrapping ? userData.original_scrapping.length : 0,
-        totalPoints: userStats.totalPoints,
+        totalPoints: totalPoints, // DISPLAY STORED TOTAL POINTS
         evidence: (() => {
           const evidenceParts = [];
-          if (userStats.hackathons !== 'NA' && userStats.hackathons > 0) evidenceParts.push(`${userStats.hackathons} hackathons`);
-          if (userStats.certifications !== 'NA' && userStats.certifications > 0) evidenceParts.push(`${userStats.certifications} certifications`);
-          if (userStats.leadership !== 'NA' && userStats.leadership > 0) evidenceParts.push(`${userStats.leadership} leadership roles`);
-          if (userStats.internships !== 'NA' && userStats.internships > 0) evidenceParts.push(`${userStats.internships} internships`);
-          if (userStats.projects !== 'NA' && userStats.projects > 0) evidenceParts.push(`${userStats.projects} projects`);
-          if (userStats.inhouse_projects !== 'NA' && userStats.inhouse_projects > 0) evidenceParts.push(`${userStats.inhouse_projects} in-house projects`);
-          if (userStats.fsd_projects !== 'NA' && userStats.fsd_projects > 0) evidenceParts.push(`${userStats.fsd_projects} FSD projects`);
-          if (userStats.coding_platforms !== 'NA' && userStats.coding_platforms > 0) evidenceParts.push(`${userStats.coding_platforms} coding platform activities`);
-          if (userStats.memberships !== 'NA' && userStats.memberships > 0) evidenceParts.push(`${userStats.memberships} memberships`);
-          if (userStats.assessments !== 'NA' && userStats.assessments > 0) evidenceParts.push(`${userStats.assessments} assessments`);
-          if (userStats.research_publications !== 'NA' && userStats.research_publications > 0) evidenceParts.push(`${userStats.research_publications} research publications`);
+          const pushEvidence = (count, label) => {
+              if (typeof count === 'number' && count > 0) evidenceParts.push(`${count} ${label}`);
+          };
+
+          pushEvidence(hackathons, 'hackathons');
+          pushEvidence(certifications, 'certifications');
+          pushEvidence(leadership, 'leadership roles');
+          pushEvidence(internships, 'internships');
+          pushEvidence(projects, 'projects');
+          pushEvidence(inhouse_projects, 'in-house projects');
+          pushEvidence(fsd_projects, 'FSD projects');
+          pushEvidence(coding_platforms, 'coding platform activities');
+          pushEvidence(memberships, 'memberships');
+          pushEvidence(assessments, 'assessments');
+          pushEvidence(research_publications, 'research publications');
+          
           if (userData.original_scrapping && userData.original_scrapping.length > 0) evidenceParts.push(`${userData.original_scrapping.length} professional posts`);
           
           return evidenceParts.length > 0 ? evidenceParts.join(', ') : 'No specific achievements recorded yet';
@@ -366,13 +272,10 @@ const LeaderBoard = () => {
       });
     });
 
-
-
     return [...realUsers]
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .map((user, index) => ({ ...user, rank: index + 1 }));
   };
-
 
 
   const leaderboardData = generateLeaderboardData();
@@ -381,7 +284,7 @@ const LeaderBoard = () => {
 return (
   <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
     {/* Fixed Particles Background - covering entire page */}
-    <div className="fixed inset-0 w-full h-full z-0">
+{/*     <div className="fixed inset-0 w-full h-full z-0">
       <Particles
         particleColors={['#ffffff', '#ffffff', '#ffffff']}
         particleCount={300}
@@ -395,14 +298,8 @@ return (
         sizeRandomness={0.8}
         cameraDistance={25}
       />
-    </div>
+    </div> */}
     
-
-
-    
-    {/* Main Content */}
-
-
     {/* Main Content */}
     <div className="relative z-10 pt-28 pb-16">
     {/* Hero Header Section */}
@@ -460,7 +357,7 @@ return (
         </div>
       </section>
     )}
-
+    {/* Load Data Placeholder */}
     {!loading && !error && !allUsersData && (
       <section className="px-8">
         <div className="max-w-4xl mx-auto">
@@ -480,12 +377,12 @@ return (
         </div>
       </section>
     )}
-    {/* Live Leaderboard Section - Redesigned */}
+    {/* Live Leaderboard Section */}
     {!loading && !error && allUsersData && (
       <Leaderboard_table leaderboardData={leaderboardData} darkMode={darkMode} fetchAllUsersData={fetchAllUsersData} loading={loading} allUsersData={allUsersData} textColor={textColor} formatUserIdToName={formatUserIdToName} fnc_allUsersData={fnc_allUsersData} fnc_isDataFromStorage={fnc_isDataFromStorage} fnc_lastrefresh={fnc_lastrefresh}/>
     )}
 
-    {/* Current User Performance - Redesigned */}
+    {/* Current User Performance */}
     {!loading && !error && current_user && (
       <Current_leaderboard_user_performance current_user={current_user} darkMode={darkMode} allUsersData={allUsersData} userid={userid} />
     )}

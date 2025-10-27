@@ -37,7 +37,6 @@ const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
   const secondaryColor = colors.secondary;
 
   // Initialize Google Generative AI
-  // The API key is retrieved here. Please replace "YOUR_API_KEY_HERE" with your actual Gemini API key.
   const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GENAI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
@@ -77,96 +76,226 @@ const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
     }
   };
 
-  // Enhanced AI response function with user data context
+  // Check if data is in simplified mode (only post_to_no and original_scrapping)
+  const isSimplifiedMode = user_data && !user_data.resume_data && !user_data.github_data;
+
+  // Enhanced AI response function with optimized context
   const fetchAIResponse = async (userInput) => {
     if (!userInput) return;
 
-    // Build context from user_data
     let contextInfo = "";
+    
     if (user_data) {
-      const { github_data, resume_data, post_to_no, total_points } = user_data;
-      
-      contextInfo = `
-      Context about the person:
-      
-      **Personal Info:**
-      - Name: ${resume_data?.data?.personal_information?.name || github_data?.profile?.name || "Not specified"}
-      - Location: ${resume_data?.data?.personal_information?.location || github_data?.profile?.location || "Not specified"}
-      - Email: ${resume_data?.data?.personal_information?.email || "Not specified"}
-      - Phone: ${resume_data?.data?.personal_information?.phone || "Not specified"}
-      - GitHub: ${github_data?.profile?.github_url || "Not specified"}
-      - Bio: ${github_data?.profile?.bio || "Not specified"}
-      
-      **Education:**
-      ${resume_data?.data?.education?.map(edu => 
-        `- ${edu.degree} from ${edu.institution} (${edu.start_date}-${edu.end_date}) - ${edu.gpa_or_percentage || ""}`
-      ).join('\n') || "Not specified"}
-      
-      **Skills:**
-      - Programming: ${resume_data?.data?.skills?.programming_languages?.join(', ') || "Not specified"}
-      - Web Technologies: ${resume_data?.data?.skills?.web_technologies?.join(', ') || "Not specified"}
-      - Tools: ${resume_data?.data?.skills?.tools_and_platforms?.join(', ') || "Not specified"}
-      
-      **Projects:**
-      ${resume_data?.data?.projects?.map(project => 
-        `- ${project.title}: ${project.description?.[0] || ""} (${project.technologies?.join(', ') || ""})`
-      ).join('\n') || "Not specified"}
-      
-      **Experience:**
-      ${resume_data?.data?.experience?.map(exp => 
-        `- ${exp.title} at ${exp.company} (${exp.start_date} - ${exp.end_date})`
-      ).join('\n') || "Not specified"}
-      
-      **Achievements & Leadership:**
-      - Total Points: ${total_points || 0}
-      ${post_to_no?.leadership?.map(item => 
-        `- ${item.position} (${item.points} points): ${item.why}`
-      ).join('\n') || ""}
-      ${post_to_no?.project?.map(item => 
-        `- Project (${item.points} points): ${item.why}`
-      ).join('\n') || ""}
-      
-      **GitHub Info:**
-      - Username: ${github_data?.profile?.username || "Not specified"}
-      - Repositories: ${github_data?.profile?.public_repos || 0}
-      - Followers: ${github_data?.profile?.followers || 0}
-      - Following: ${github_data?.profile?.following || 0}
-      - Public Gists: ${github_data?.profile?.public_gists || 0}
-      
-      **Repository Details:**
-      ${github_data?.repositories?.map(repo => 
-        `- ${repo.name}: ${repo.description || "No description"} 
-          * Primary Language: ${repo.primary_language || "Not specified"}
-          * Languages: ${repo.repo_languages?.join(', ') || "Not specified"}
-          * Stars: ${repo.total_stars || 0}, Forks: ${repo.total_forks || 0}
-          * URL: ${repo.repo_url}
-          * Topics: ${repo.topics?.join(', ') || "None"}
-          * Open Issues: ${repo.open_issues_count || 0}`
-      ).join('\n') || "No repositories found"}
-      `;
+      if (isSimplifiedMode) {
+        // Simplified mode - only LinkedIn activity and achievements
+        const { post_to_no, total_points, original_scrapping } = user_data;
+        
+        const queryLower = userInput.toLowerCase();
+        const needsAchievements = queryLower.includes('achieve') || queryLower.includes('award') || queryLower.includes('hackathon') || queryLower.includes('win') || queryLower.includes('score') || queryLower.includes('point') || queryLower.includes('certificate') || queryLower.includes('leadership');
+        const needsPosts = queryLower.includes('post') || queryLower.includes('linkedin') || queryLower.includes('recent') || queryLower.includes('activity') || queryLower.includes('what') || queryLower.includes('tell');
+        
+        // Extract name from first post if available
+        const userName = original_scrapping?.[0]?.author_name?.split('View: ')?.[1]?.split(' 3rd')?.[0] || "User";
+        
+        contextInfo = `
+PROFILE: ${userName}
+Based on LinkedIn Activity & Achievements
+
+TOTAL PLACEMENT SCORE: ${total_points || 0} points
+`;
+
+        // Add achievements if relevant or if it's a general query
+        if (needsAchievements || (!needsPosts && !needsAchievements)) {
+          contextInfo += `
+ACHIEVEMENTS BREAKDOWN:
+
+${post_to_no?.hackathon?.length > 0 ? `🏆 HACKATHONS & COMPETITIONS:
+${post_to_no.hackathon.map((h, i) => 
+  `${i+1}. ${h.position === 'participated' ? 'Participated' : `Position ${h.position}`} (${h.points}pts)
+   Event: ${h.source_post_excerpt?.[0]?.substring(0, 100)}...
+   When: ${h.timestamp?.join(', ')} ago
+   Engagement: ${h.reaction} reactions, ${h.comments} comments
+   Scoring: ${h.why}`
+).join('\n\n')}` : ''}
+
+${post_to_no?.certification?.length > 0 ? `\n📜 CERTIFICATIONS:
+${post_to_no.certification.map((c, i) => 
+  `${i+1}. ${c.type || 'Certification'} (${c.points}pt)
+   Details: ${c.source_post_excerpt?.[0]?.substring(0, 100)}...
+   When: ${c.timestamp?.join(', ')} ago
+   Engagement: ${c.reaction} reactions, ${c.comments} comments
+   Scoring: ${c.why}`
+).join('\n\n')}` : ''}
+
+${post_to_no?.leadership?.length > 0 ? `\n👔 LEADERSHIP ROLES:
+${post_to_no.leadership.map((l, i) => 
+  `${i+1}. ${l.type || 'Leadership Position'} (${l.points}pts)
+   Details: ${l.source_post_excerpt?.[0]?.substring(0, 100)}...
+   When: ${l.timestamp?.join(', ')} ago
+   Engagement: ${l.reaction} reactions, ${l.comments} comments
+   Scoring: ${l.why}`
+).join('\n\n')}` : ''}
+
+${post_to_no?.internship?.length > 0 ? `\n💼 INTERNSHIPS:
+${post_to_no.internship.map((intern, i) => 
+  `${i+1}. ${intern.type || 'Internship'} (${intern.points}pts)
+   Details: ${intern.source_post_excerpt?.[0]?.substring(0, 100)}...
+   When: ${intern.timestamp?.join(', ')} ago
+   Engagement: ${intern.reaction} reactions, ${intern.comments} comments
+   Scoring: ${intern.why}`
+).join('\n\n')}` : ''}
+
+${post_to_no?.project?.length > 0 ? `\n💡 PROJECT RECOGNITION:
+${post_to_no.project.map((proj, i) => 
+  `${i+1}. ${proj.type || 'Project'} (${proj.points}pts)
+   Details: ${proj.source_post_excerpt?.[0]?.substring(0, 100)}...
+   When: ${proj.timestamp?.join(', ')} ago
+   Engagement: ${proj.reaction} reactions, ${proj.comments} comments
+   Scoring: ${proj.why}`
+).join('\n\n')}` : ''}
+`;
+        }
+
+        // Add recent posts if relevant
+        if (needsPosts || (!needsAchievements && !needsPosts)) {
+          contextInfo += `
+RECENT LINKEDIN ACTIVITY:
+${original_scrapping?.slice(0, 5).map((post, i) => 
+  `${i+1}. [${post.timestamp?.split('•')[0]?.trim() || 'Recent'}]
+   ${post.text?.substring(0, 200) || 'Media post'}${post.text?.length > 200 ? '...' : ''}
+   📊 Engagement: ${post.reactions} | ${post.comments || '0 comments'}
+   ${post.images?.length > 0 ? `📸 ${post.images.length} image(s)` : ''}`
+).join('\n\n') || 'No recent posts available'}
+`;
+        }
+
+      } else {
+        // Full mode - comprehensive profile data
+        const { github_data, resume_data, post_to_no, total_points, original_scrapping } = user_data;
+        const personalInfo = resume_data?.data?.personalInfo || {};
+        const skills = resume_data?.data?.skills || {};
+        const technicalSkills = skills.technicalSkills || {};
+        
+        const queryLower = userInput.toLowerCase();
+        const needsSkills = queryLower.includes('skill') || queryLower.includes('tech') || queryLower.includes('language') || queryLower.includes('tool');
+        const needsExperience = queryLower.includes('work') || queryLower.includes('experience') || queryLower.includes('intern') || queryLower.includes('job');
+        const needsProjects = queryLower.includes('project') || queryLower.includes('built') || queryLower.includes('created');
+        const needsGithub = queryLower.includes('github') || queryLower.includes('repo') || queryLower.includes('code');
+        const needsAchievements = queryLower.includes('achieve') || queryLower.includes('award') || queryLower.includes('hackathon') || queryLower.includes('win') || queryLower.includes('score') || queryLower.includes('point');
+        const needsPosts = queryLower.includes('post') || queryLower.includes('linkedin') || queryLower.includes('recent') || queryLower.includes('activity');
+        
+        contextInfo = `
+PROFILE: ${personalInfo.name || github_data?.profile?.name}
+Location: ${personalInfo.location || github_data?.profile?.location || 'Not specified'}
+Contact: ${personalInfo.email || ''} | ${personalInfo.phone || ''}
+Links: GitHub: ${personalInfo.github || ''} | LinkedIn: ${personalInfo.linkedin || ''}
+
+EDUCATION:
+${resume_data?.data?.education?.slice(0, 2).map(edu => 
+  `${edu.degree} - ${edu.institution} (${edu.endDate || 'Present'}) | GPA: ${edu.gpa || 'N/A'}`
+).join('\n') || 'Not specified'}
+
+OBJECTIVE: ${resume_data?.data?.objective || 'Not specified'}
+`;
+
+        if (needsSkills || !needsExperience && !needsProjects && !needsGithub && !needsAchievements && !needsPosts) {
+          contextInfo += `
+SKILLS:
+• Programming: ${technicalSkills.programmingLanguages?.join(', ') || 'N/A'}
+• Web: ${technicalSkills.webDevelopment?.join(', ') || 'N/A'}
+• AI/ML: ${technicalSkills.aiMlTools?.join(', ') || 'N/A'}
+• Databases: ${technicalSkills.databases?.join(', ') || 'N/A'}
+• DevOps: ${technicalSkills.devOpsTools?.join(', ') || 'N/A'}
+• Languages: ${skills.languages?.map(l => `${l.name} (${l.proficiency})`).join(', ') || 'N/A'}
+• Soft Skills: ${skills.softSkills?.join(', ') || 'N/A'}
+`;
+        }
+
+        if (needsExperience || needsAchievements) {
+          contextInfo += `
+EXPERIENCE:
+${resume_data?.data?.experience?.map(exp => 
+  `• ${exp.title} @ ${exp.company} (${exp.startDate} - ${exp.endDate})
+  Key: ${exp.responsibilities?.[0] || 'N/A'}`
+).join('\n') || 'None listed'}
+`;
+        }
+
+        if (needsProjects) {
+          contextInfo += `
+PROJECTS:
+${resume_data?.data?.projects?.slice(0, 5).map(p => 
+  `• ${p.name}: ${p.description?.substring(0, 100) || 'N/A'}
+  Tech: ${p.technologies?.join(', ') || 'N/A'}`
+).join('\n') || 'None listed'}
+`;
+        }
+
+        if (needsGithub) {
+          contextInfo += `
+GITHUB (${github_data?.profile?.username}):
+Stats: ${github_data?.profile?.public_repos || 0} repos | ${github_data?.profile?.followers || 0} followers
+Top Repos:
+${github_data?.repositories?.filter(r => !r.is_fork).slice(0, 5).map(repo => 
+  `• ${repo.name}: ${repo.description?.substring(0, 80) || 'No desc'} [${repo.primary_language || 'N/A'}] ⭐${repo.total_stars || 0}`
+).join('\n') || 'None'}
+`;
+        }
+
+        if (needsAchievements) {
+          contextInfo += `
+ACHIEVEMENTS (Total: ${total_points} points):
+${post_to_no?.hackathon?.map(h => 
+  `• Position ${h.position} at hackathon (${h.points}pts): ${h.source_post_excerpt?.[0]?.substring(0, 120)}`
+).join('\n') || ''}
+${post_to_no?.internship?.map(i => 
+  `• ${i.type} (${i.points}pts): ${i.source_post_excerpt?.[0]?.substring(0, 120)}`
+).join('\n') || ''}
+${post_to_no?.project?.map(p => 
+  `• ${p.type} (${p.points}pts): ${p.source_post_excerpt?.[0]?.substring(0, 120)}`
+).join('\n') || ''}
+Certifications: ${resume_data?.data?.certificationsAchievements?.join(' | ') || 'None'}
+`;
+        }
+
+        if (needsPosts) {
+          contextInfo += `
+RECENT LINKEDIN POSTS:
+${original_scrapping?.slice(0, 3).map((post, i) => 
+  `${i+1}. [${post.timestamp?.split('•')[0]}] ${post.text?.substring(0, 150)}... 
+  Engagement: ${post.reactions} | ${post.comments || '0 comments'}`
+).join('\n\n') || 'None available'}
+`;
+        }
+      }
     }
 
-    // Conversation history for context
-    const conversationHistory = messages.map(msg => 
+    // Conversation history
+    const conversationHistory = messages.slice(-4).map(msg => 
       `${msg.user ? 'User' : 'Assistant'}: ${msg.text}`
     ).join('\n');
 
     const prompt = `
-    ${contextInfo}
-    
-    Previous conversation:
-    ${conversationHistory}
-    
-    Current user question: ${userInput}
-    
-    Please provide a helpful, informative response based on the context above. 
-    If the question is about the person's background, use the provided information.
-    Keep responses concise but comprehensive. Use markdown formatting for better readability.
-    If you don't have specific information, let the user know politely.
-    `;
+Context: ${contextInfo}
+
+Previous conversation:
+${conversationHistory}
+
+User question: ${userInput}
+
+Instructions:
+- Provide accurate, engaging responses based on the context
+- When discussing achievements, always mention placement matrix points
+- ${isSimplifiedMode ? 'Focus on LinkedIn activity and achievement scoring since no resume/GitHub data is available' : 'Draw from all available data sources'}
+- Be conversational yet professional
+- Use markdown formatting (bold for emphasis, bullets for lists)
+- Keep responses 3-6 sentences unless more detail is requested
+- If information is missing, suggest related topics
+- Be specific and cite actual details from the context
+- When discussing engagement, mention reactions and comments
+`;
 
     try {
-      // Use actual Gemini API
       const result = await model.generateContent(prompt);
       const responseText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text || 
                           "I couldn't process that request.";
@@ -194,7 +323,6 @@ const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
         const parts = [];
         let currentIndex = 0;
 
-        // Process bold text (**text**)
         const boldRegex = /\*\*(.*?)\*\*/g;
         let match;
 
@@ -295,10 +423,12 @@ const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
     return <div className="space-y-1">{elements}</div>;
   };
 
-  // Get user name for personalized greeting
-  const userName = user_data?.resume_data?.data?.personal_information?.name || 
-                   user_data?.github_data?.profile?.name || 
-                   "this person";
+  // Get user name
+  const userName = isSimplifiedMode 
+    ? user_data?.original_scrapping?.[0]?.author_name?.split('View: ')?.[1]?.split(' 3rd')?.[0] || "this person"
+    : user_data?.resume_data?.data?.personalInfo?.name || 
+      user_data?.github_data?.profile?.name || 
+      "this person";
 
   return (
     <div className="fixed bottom-6 right-6 flex flex-col items-end z-50">
@@ -337,15 +467,36 @@ const ChatBot = ({ user_data = null, theme_card_color = "pink" }) => {
             {messages.length === 0 && (
               <div className="text-center text-gray-500 mt-8">
                 <Bot className={`w-12 h-12 mx-auto text-${primaryColor}-300 mb-2`} />
-                <p className="text-sm">
-                  Hello! I'm here to help you learn more about {userName}. 
-                  Ask me about their skills, projects, experience, or anything else!
+                <p className="text-sm font-medium mb-3">
+                  👋 Hello! I'm here to help you learn more about {userName}.
                 </p>
-                <div className="mt-4 text-xs text-gray-400">
-                  <p>Try asking:</p>
-                  <p>• "What are their skills?"</p>
-                  <p>• "Tell me about their projects"</p>
-                  <p>• "What's their experience?"</p>
+                <p className="text-xs mb-4">
+                  {isSimplifiedMode 
+                    ? "I have information about their LinkedIn activity, achievements, and placement matrix score!"
+                    : "I have comprehensive information about their skills, projects, work experience, achievements, and more!"
+                  }
+                </p>
+                <div className="mt-4 text-xs text-gray-400 text-left bg-gray-50 p-3 rounded-lg">
+                  <p className="font-semibold mb-2">💡 Try asking:</p>
+                  {isSimplifiedMode ? (
+                    <>
+                      <p>• "my placement matrix score?"</p>
+                      <p>• "how many hackathons have I participated in?"</p>
+                      <p>• "Tell me about my certifications"</p>
+                      <p>• "What are my recent achievements?"</p>
+                      <p>• "how many github repos I have"</p>
+                      <p>• "What leadership roles I have done?"</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>• "What are their key technical skills?"</p>
+                      <p>• "Tell me about their work experience"</p>
+                      <p>• "What hackathons have they won?"</p>
+                      <p>• "Show me their top GitHub projects"</p>
+                      <p>• "What's their placement matrix score?"</p>
+                      <p>• "What recent achievements do they have?"</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}

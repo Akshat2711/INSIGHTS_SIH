@@ -77,49 +77,53 @@ function SignupCard() {
   };
 
 
-  const retrieve_linked_info = async () => {
-    setLoading(true);
+const retrieve_linked_info = async () => {
+  setLoading(true);
 
-    try {
-      const res = await fetch(
-        `https://api.inisights.space/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
-        { method: "POST" }
-      );
-      const data = await res.json();
+  try {
+    // Step 1: Try to fetch existing user info
+    const checkRes = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
+    let userInfo = await checkRes.json();
 
-      let userInfo; // <-- Fix: declare userInfo before assignment
+    // If valid user data exists, skip scraping
+    if (userInfo && Object.keys(userInfo).length > 0 && userInfo.name) {
+      localStorage.setItem("insight_user_info", JSON.stringify(userInfo));
+      setMessage({ type: 'info', text: 'User info loaded from backend cache.' });
+      return; // ✅ Exit early, no need to scrape again
+    }
 
-      if (data.success) {
-        
-        //getting new info stored in backend
-        try {
-          const response = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          userInfo = await response.json();
-        } catch (error) {
-          console.error("Error fetching user info:", error);
-        }
+    // Step 2: Scrape only if user not found or data incomplete
+    const scrapeRes = await fetch(
+      `https://api.inisights.space/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
+      { method: "POST" }
+    );
 
-        // Only save if userInfo is valid
+    const data = await scrapeRes.json();
+
+    if (data.success) {
+      // Step 3: Fetch updated user info after scraping
+      try {
+        const response = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        userInfo = await response.json();
+
+        // Store the new info in localStorage
         if (userInfo && typeof userInfo === "object") {
           localStorage.setItem("insight_user_info", JSON.stringify(userInfo));
-        } else {
-          console.warn("User info not updated in localStorage due to fetch error.");
         }
         setMessage({ type: 'success', text: data.message || 'Data refreshed successfully!' });
-
-
-      } else {
-        console.log(data.error || 'Something went wrong');
+      } catch (error) {
+        console.error("Error fetching user info after scraping:", error);
       }
-    } catch (err) {
-      console.log(err.message);
-    } finally {
-      setLoading(false);
+    } else {
+      console.log(data.error || 'Something went wrong during scraping.');
     }
-  };
+  } catch (err) {
+    console.error("Error:", err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
 

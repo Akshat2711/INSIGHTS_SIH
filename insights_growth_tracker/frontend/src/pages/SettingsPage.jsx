@@ -218,7 +218,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Enhanced Particles Background */}
-      <div className="fixed inset-0 w-full h-full z-0">
+{/*       <div className="fixed inset-0 w-full h-full z-0">
         <Particles
           particleColors={['#ffffff', '#ffffff', '#ffffff']}
           particleCount={400}
@@ -232,7 +232,7 @@ export default function SettingsPage() {
           sizeRandomness={0.6}
           cameraDistance={20}
         />
-      </div>
+      </div> */}
       
       {/* Content Container */}
       <div className="relative z-10 min-h-screen pt-16 pb-12">

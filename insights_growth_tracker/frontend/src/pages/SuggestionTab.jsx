@@ -200,7 +200,7 @@ const SuggestionTab = () => {
   return (
   <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-black">
       {/* Fixed Particles Background - covering entire page */}
-      <div className="fixed inset-0 w-full h-full z-0">
+{/*       <div className="fixed inset-0 w-full h-full z-0">
         <Particles
           particleColors={['#ffffff', '#ffffff', '#ffffff']}
           particleCount={300}
@@ -214,7 +214,7 @@ const SuggestionTab = () => {
           sizeRandomness={0.8}
           cameraDistance={25}
         />
-      </div>
+      </div> */}
     
     {/* Main Content */}
     <div className="relative z-10 pt-20 pb-16">
