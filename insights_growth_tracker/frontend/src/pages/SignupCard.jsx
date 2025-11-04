@@ -82,7 +82,7 @@ const retrieve_linked_info = async () => {
 
   try {
     // Step 1: Try to fetch existing user info
-    const checkRes = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
+    const checkRes = await fetch(`https://ba7b80716e18.ngrok-free.app/senduserinfo?userid=${linkedinId}`);
     let userInfo = await checkRes.json();
 
     // If valid user data exists, skip scraping
@@ -94,7 +94,7 @@ const retrieve_linked_info = async () => {
 
     // Step 2: Scrape only if user not found or data incomplete
     const scrapeRes = await fetch(
-      `https://api.inisights.space/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
+      `https://ba7b80716e18.ngrok-free.app/scrapdata?userid=${encodeURIComponent(linkedinId)}`,
       { method: "POST" }
     );
 
@@ -103,7 +103,7 @@ const retrieve_linked_info = async () => {
     if (data.success) {
       // Step 3: Fetch updated user info after scraping
       try {
-        const response = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
+        const response = await fetch(`https://ba7b80716e18.ngrok-free.app/senduserinfo?userid=${linkedinId}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         userInfo = await response.json();
 

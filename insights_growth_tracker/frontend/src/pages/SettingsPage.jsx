@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
     try {
       const res = await fetch(
-        `https://api.inisights.space/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
+        `https://ba7b80716e18.ngrok-free.app/scrapdata?userid=${encodeURIComponent(userData.linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -82,7 +82,7 @@ export default function SettingsPage() {
       let userInfo;
       if (data.success) {
         try {
-          const response = await fetch(`https://api.inisights.space/senduserinfo?userid=${linkedinId}`);
+          const response = await fetch(`https://ba7b80716e18.ngrok-free.app/senduserinfo?userid=${linkedinId}`);
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           userInfo = await response.json();
         } catch (err) {
