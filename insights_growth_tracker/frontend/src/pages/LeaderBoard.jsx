@@ -3,6 +3,7 @@ import { Crown, Loader, AlertCircle, Trophy} from 'lucide-react';
 import Particles from '../components/Particles';
 import { Current_leaderboard_user_performance } from '../components/Leaderboard_cuser_performance';
 import { Leaderboard_table } from '../components/Leaderboard_table';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 const LeaderBoard = () => {
   const [loading, setLoading] = useState(false);
@@ -80,7 +81,7 @@ const LeaderBoard = () => {
     setIsDataFromStorage(false);
     
     try {
-      const response = await fetch('https://insights-sih-tf-lva.fly.dev/getallusers');
+      const response = await fetch(`${API_BASE_URL}/getallusers`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

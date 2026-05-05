@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, User, Trophy, BookOpen, Calendar, Award, Code, Users, GraduationCap, Briefcase, Star, Database, Shield, FileText, BarChart3, ChevronRight } from 'lucide-react';
 import Particles from '../components/Particles';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 // Hoisted UI subcomponents (move out of CompareTab to avoid remounts on every render)
 export const Surface = ({ className = '', children }) => {
@@ -294,7 +295,7 @@ const CompareTab = () => {
   const fetchUserData = useCallback(async (userId, setUserState) => {
     try {
       // NOTE: This is the existing fetch logic using the passed userId
-      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${userId}`);
+      const response = await fetch(`${API_BASE_URL}/senduserinfo?userid=${userId}`);
       if (!response.ok) throw new Error('User not found');
       const data = await response.json();
       const processedData = processUserData(data, userId);
@@ -318,7 +319,7 @@ const CompareTab = () => {
     setOtherUserData(null); // Clear previous comparison
     
     try {
-      const response = await fetch(`https://insights-sih-tf-lva.fly.dev/search-users-by-keyword?keyword=${encodeURIComponent(searchKeyword.trim())}&limit=5`);
+      const response = await fetch(`${API_BASE_URL}/search-users-by-keyword?keyword=${encodeURIComponent(searchKeyword.trim())}&limit=5`);
       
       if (!response.ok) {
         let errorMessage = 'Search failed.';

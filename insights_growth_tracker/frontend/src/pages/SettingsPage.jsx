@@ -4,6 +4,7 @@ import { User, Linkedin, RefreshCw, Settings, Shield, Database, BarChart3, LogOu
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import Particles from '../components/Particles';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 export default function SettingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -115,7 +116,7 @@ export default function SettingsPage() {
 
     try {
       const res = await fetch(
-        `https://insights-sih-tf-lva.fly.dev/refresh-github-data?github_id=${encodeURIComponent(githubId)}&userid=${encodeURIComponent(linkedinId)}`,
+        `${API_BASE_URL}/refresh-github-data?github_id=${encodeURIComponent(githubId)}&userid=${encodeURIComponent(linkedinId)}`,
         { method: "POST" }
       );
       const data = await res.json();
@@ -149,7 +150,7 @@ export default function SettingsPage() {
       formData.append('userid', linkedinId);
 
       const res = await fetch(
-        'https://insights-sih-tf-lva.fly.dev/upload-resume',
+        `${API_BASE_URL}/upload-resume`,
         { 
           method: "POST",
           body: formData

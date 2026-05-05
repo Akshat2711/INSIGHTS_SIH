@@ -3,6 +3,7 @@ import { Search, Zap, Users, TrendingUp, Filter, ArrowRight, Star, Award, Target
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import Particles from '../components/Particles';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 export default function SearchInsights() {
   const [query, setQuery] = useState("");
@@ -43,7 +44,7 @@ export default function SearchInsights() {
 
     try {
       const encoded = encodeURIComponent(query);
-      const endpoint = `https://insights-sih-tf-lva.fly.dev/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
+      const endpoint = `${API_BASE_URL}/search-users-by-keyword?keyword=${encoded}&limit=${limit}`;
 
       const resp = await fetch(endpoint);
       if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);

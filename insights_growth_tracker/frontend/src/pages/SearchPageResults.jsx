@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { User, Award, Code, Briefcase, Github, Mail, FileText, ExternalLink, Trophy, Calendar, MessageCircle, Heart, Star, MapPin, Linkedin, Sun, Moon, Zap, Target, Crown, Book, GitBranch, Users, Eye, Download } from 'lucide-react';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 // Lazy load heavy components
 const Particles = lazy(() => import('../components/Particles'));
@@ -79,7 +80,7 @@ const SearchPageResults = () => {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
       const response = await fetch(
-        `https://insights-sih-tf-lva.fly.dev/senduserinfo?userid=${userid}`,
+        `${API_BASE_URL}/senduserinfo?userid=${userid}`,
         { 
           signal: controller.signal,
           headers: {
